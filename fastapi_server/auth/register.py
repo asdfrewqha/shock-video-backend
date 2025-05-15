@@ -11,7 +11,7 @@ router = APIRouter()
 async def register(user: UserCreate):
 
     user_check = adapter.get_by_value(User, 'username', user.username)
-    print(user_check)
+
     if user_check != []:
         return JSONResponse(content={"message": "Already exists"}, status_code=409)
     
@@ -25,7 +25,6 @@ async def register(user: UserCreate):
 
     new_user_db = adapter.get_by_value(User, 'username', user.username)[0]
 
-    print(new_user_db)
 
     response_user = UserResponse(
         id=new_user_db.id,
