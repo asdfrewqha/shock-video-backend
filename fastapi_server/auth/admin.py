@@ -10,7 +10,7 @@ router = APIRouter()
 Bear = HTTPBearer(auto_error=False)
 
 @router.get('/admin', response_model=UserResponse)
-async def promo_create(access_token: str = Security(Bear)):
+async def admin(access_token: str = Security(Bear)):
 
 
     data = TokenManager.decode_token(access_token.credentials)

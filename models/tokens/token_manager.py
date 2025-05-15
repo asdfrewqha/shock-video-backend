@@ -1,16 +1,16 @@
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from typing import Dict, Any
+from config import RANDOM_SECRET
 
 class TokenManager:
-    SECRET_KEY = "your_secret_key"  # Замените на ваш секретный ключ
+    SECRET_KEY = RANDOM_SECRET
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
     REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 60  # 60 дней
 
     @staticmethod
     def create_token(data: Dict[str, Any], expire_minutes: int = None) -> str:
-        """Создает JWT токен с данными пользователя, принимая время истечения в минутах."""
         to_encode = data.copy()
         if expire_minutes is not None:
             expire = datetime.utcnow() + timedelta(minutes=expire_minutes)
@@ -22,10 +22,9 @@ class TokenManager:
 
     @staticmethod
     def decode_token(token: str) -> Dict[str, Any]:
-        """Декодирует JWT токен и возвращает данные, если токен действителен."""
         try:
             payload = jwt.decode(token, TokenManager.SECRET_KEY, algorithms=[TokenManager.ALGORITHM])
-            # Проверка на истечение срока действия токена
+
             if datetime.utcfromtimestamp(payload.get("exp")) < datetime.utcnow():
                 return {"error": "Token has expired"}
             return payload

@@ -10,7 +10,7 @@ router = APIRouter()
 Bear = HTTPBearer(auto_error=False)
 
 @router.get('/refresh')
-async def promo_create(refresh_token: str = Security(Bear)):
+async def refresh(refresh_token: str = Security(Bear)):
 
     data = TokenManager.decode_token(refresh_token.credentials)
 

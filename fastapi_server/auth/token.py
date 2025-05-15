@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.post("/token", response_model=Tokens, status_code=status.HTTP_201_CREATED)
-async def register(user: UserLogin):
+async def token(user: UserLogin):
 
     bd_user = adapter.get_by_value(User, 'username', user.username)
     
