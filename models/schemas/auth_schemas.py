@@ -8,14 +8,16 @@ class Role(str, Enum):
     USER = 'USER'
     ADMIN = 'ADMIN'
 
-
+class UserLogin(BaseModel):
+    username: str
+    password: str
 
 class UserCreate(BaseModel):
     username: str
     password: str
     role: Role
 
-class Token(BaseModel):
+class Tokens(BaseModel):
     access_token: str
     refresh_token: str
 

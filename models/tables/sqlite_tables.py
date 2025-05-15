@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from models.schemas.auth import Role
+from models.schemas.auth_schemas import Role
 Base = declarative_base()
 
 class User(Base):
