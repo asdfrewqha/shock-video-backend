@@ -21,16 +21,18 @@ async def register(user: UserLogin):
     if not Hasher.verify_password(user.password, bd_user.hashed_password):
         return JSONResponse(content={"message": "Invalid credentials", "status":"error"}, status_code=401)
     
-    access_token = TokenManager.create_access_token(
+    access_token = TokenManager.create_token(
         {
-            "username": user.username
+            "username": user.username,
+            "type": "access"
         },
         TokenManager.ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
-    refresh_token = TokenManager.create_access_token(
+    refresh_token = TokenManager.create_token(
         {
-            "username": user.username
+            "username": user.username,
+            "type": "refresh"
         },
         TokenManager.REFRESH_TOKEN_EXPIRE_MINUTES
     )

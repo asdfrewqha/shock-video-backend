@@ -9,7 +9,7 @@ class TokenManager:
     REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 60  # 60 дней
 
     @staticmethod
-    def create_access_token(data: Dict[str, Any], expire_minutes: int = None) -> str:
+    def create_token(data: Dict[str, Any], expire_minutes: int = None) -> str:
         """Создает JWT токен с данными пользователя, принимая время истечения в минутах."""
         to_encode = data.copy()
         if expire_minutes is not None:
@@ -21,7 +21,7 @@ class TokenManager:
         return encoded_jwt
 
     @staticmethod
-    def decode_access_token(token: str) -> Dict[str, Any]:
+    def decode_token(token: str) -> Dict[str, Any]:
         """Декодирует JWT токен и возвращает данные, если токен действителен."""
         try:
             payload = jwt.decode(token, TokenManager.SECRET_KEY, algorithms=[TokenManager.ALGORITHM])
