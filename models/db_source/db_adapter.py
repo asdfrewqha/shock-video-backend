@@ -4,11 +4,11 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Any
 from models.tables.db_tables import User, Base
-from config import DB_URL
+from config import DATABASE_URL
 
 class DatabaseAdapter:
-    def __init__(self, database_url: str = DB_URL) -> None:
-        self.engine = create_engine(database_url, connect_args={"check_same_thread": False})
+    def __init__(self, database_url: str = DATABASE_URL) -> None:
+        self.engine = create_engine(database_url)
         self.SessionLocal = sessionmaker(bind=self.engine)
         self.connection = None
 
