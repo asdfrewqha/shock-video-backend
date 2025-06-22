@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Any
-from models.tables.sqlite_tables import User, Base
+from models.tables.db_tables import User, Base
 from config import DB_URL
 
 class DatabaseAdapter:

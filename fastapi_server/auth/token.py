@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
-from models.db_source.sqlite_adapter import adapter
-from models.tables.sqlite_tables import User
+from models.db_source.db_adapter import adapter
+from models.tables.db_tables import User
 from models.schemas.auth_schemas import UserLogin, Tokens
 from fastapi.responses import JSONResponse
 from models.hashing.passlib_hasher import Hasher

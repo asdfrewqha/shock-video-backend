@@ -15,7 +15,7 @@ class UserLogin(BaseModel):
 class UserCreate(BaseModel):
     username: str
     password: str
-    role: Role
+    role: Optional[Role] = Role.USER
 
 class Tokens(BaseModel):
     access_token: str
@@ -24,5 +24,7 @@ class Tokens(BaseModel):
 class UserResponse(BaseModel):
     id: int
     username: str
-    hashed_password: str
     role: Role
+
+class VideoResponse(BaseModel):
+    url: str

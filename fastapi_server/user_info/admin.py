@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Security
-from models.db_source.sqlite_adapter import adapter
-from models.tables.sqlite_tables import User
+from models.db_source.db_adapter import adapter
+from models.tables.db_tables import User
 from models.schemas.auth_schemas import UserResponse
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
@@ -34,4 +34,4 @@ async def admin(access_token: str = Security(Bear)):
     
 
 
-    return {'details': 'some message for admins'}
+    return {'details': 'some message for admins'}   
