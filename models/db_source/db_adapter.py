@@ -56,6 +56,11 @@ class DatabaseAdapter:
             session.commit()
             return record
 
+    def update_by_id(self, model, record_id, updates: dict):
+        with self.SessionLocal() as session:
+            session.query(model).filter(model.id == record_id).update(updates)
+            session.commit()
+
     def delete(self, model, id) -> List[dict]:
         with self.SessionLocal() as session:
             record = session.query(model).filter(model.id == id).first()

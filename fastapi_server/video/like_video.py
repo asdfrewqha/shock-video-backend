@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Security, Form
+from fastapi import APIRouter, Security
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import Video, User, Like
+from models.schemas.auth_schemas import VideoRequest
 from models.tokens.token_manager import TokenManager
 from fastapi_server.video.delete_video import extract_uuid_from_url
 
@@ -12,17 +13,20 @@ Bear = HTTPBearer(auto_error=False)
 
 @router.post("/like-video")
 async def like_video(
-    uuid: str = Form(None),
-    url: str = Form(None),
+    video: VideoRequest,
     like: bool = True,
     access_token: str = Security(Bear),
 ):
+    if not access_token or not access_token.credentials:
+        return JSONResponse(
+            {"message": "Unauthorized", "status": "error"}, status_code=401
+        )
     data = TokenManager.decode_token(access_token.credentials)
 
-    if uuid:
-        video_id = uuid
-    elif url:
-        video_id = extract_uuid_from_url(url)
+    if video.uuid:
+        video_id = video.uuid
+    elif video.url:
+        video_id = extract_uuid_from_url(video.url)
         if not video_id:
             return JSONResponse(
                 content={

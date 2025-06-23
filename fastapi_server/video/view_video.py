@@ -1,18 +1,19 @@
-from fastapi import APIRouter, Form
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import Video
+from models.schemas.auth_schemas import VideoRequest
 from fastapi_server.video.delete_video import extract_uuid_from_url
 
 router = APIRouter()
 
 
 @router.post("/view-video")
-def view_video(uuid: str = Form(None), url: str = Form(None)):
-    if uuid:
-        id = uuid
-    elif url:
-        id = extract_uuid_from_url(url)
+def view_video(video: VideoRequest):
+    if video.uuid:
+        id = video.uuid
+    elif video.url:
+        id = extract_uuid_from_url(video.url)
         if not id:
             return JSONResponse(
                 content={

@@ -28,13 +28,16 @@ async def me(access_token: str = Security(Bear)):
 
     user_db = adapter.get_by_value(User, "username", data["username"]).first()
 
-    if user_db == []:
+    if not user_db:
         return JSONResponse(
             content={"message": "Invalid token", "status": "error"}, status_code=401
         )
 
     response_user = UserResponse(
-        id=user_db.id, username=user_db.username, role=user_db.role
+        id=user_db.id,
+        username=user_db.username,
+        role=user_db.role,
+        avatar_url=user_db.avatar_url,
     )
 
     return response_user

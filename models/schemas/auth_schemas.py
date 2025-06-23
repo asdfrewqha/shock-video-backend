@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 from typing import Optional
 from enum import Enum
 
@@ -28,7 +28,19 @@ class UserResponse(BaseModel):
     id: int
     username: str
     role: Role
+    avatar_url: str
 
 
 class VideoResponse(BaseModel):
+    id: UUID4
     url: str
+    author_id: int
+    views: int
+    likes: int
+    dislikes: int
+    description: str
+
+
+class VideoRequest(BaseModel):
+    url: Optional[str] = ""
+    uuid: Optional[str] = ""

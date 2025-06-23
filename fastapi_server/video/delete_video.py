@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Security, Form
+from fastapi import APIRouter, Security
 from fastapi.security import HTTPBearer
 from fastapi.responses import JSONResponse, Response
 from models.db_source.db_adapter import adapter
@@ -6,6 +6,7 @@ from models.tokens.token_manager import TokenManager
 from supabase import create_client
 from config import SUPABASE_API, SUPABASE_URL
 from models.tables.db_tables import Video, User
+from models.schemas.auth_schemas import VideoRequest
 from urllib.parse import urlparse
 import logging
 import os
@@ -32,15 +33,17 @@ def extract_uuid_from_url(url: str) -> str | None:
 
 
 @router.delete("/delete-video")
-async def delete_video(
-    uuid: str = Form(None), url: str = Form(None), access_token: str = Security(Bear)
-):
+async def delete_video(video: VideoRequest, access_token: str = Security(Bear)):
+    if not access_token or not access_token.credentials:
+        return JSONResponse(
+            {"message": "Unauthorized", "status": "error"}, status_code=401
+        )
     data = TokenManager.decode_token(access_token.credentials)
     supabase = create_client(SUPABASE_URL, SUPABASE_API)
-    if uuid:
-        id = uuid
-    elif url:
-        id = extract_uuid_from_url(url)
+    if video.uuid:
+        id = video.uuid
+    elif video.url:
+        id = extract_uuid_from_url(video.url)
         if not id:
             return JSONResponse(
                 content={
