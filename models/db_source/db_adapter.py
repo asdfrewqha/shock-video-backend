@@ -1,10 +1,10 @@
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Any
-from models.tables.db_tables import User, Base
+from models.tables.db_tables import Base
 from config import DATABASE_URL
+
 
 class DatabaseAdapter:
     def __init__(self, database_url: str = DATABASE_URL) -> None:
@@ -21,7 +21,7 @@ class DatabaseAdapter:
             raise
 
     def initialize_tables(self) -> None:
-        print('Таблицы созданы или уже существуют')
+        print("Таблицы созданы или уже существуют")
         Base.metadata.create_all(bind=self.engine)
 
     def get_all(self, model) -> List[dict]:
@@ -34,7 +34,11 @@ class DatabaseAdapter:
 
     def get_by_value(self, model, parameter: str, parameter_value: Any) -> List[dict]:
         with self.SessionLocal() as session:
-            return session.query(model).filter(getattr(model, parameter) == parameter_value).all()
+            return (
+                session.query(model)
+                .filter(getattr(model, parameter) == parameter_value)
+                .all()
+            )
 
     def insert(self, model, insert_dict: dict) -> List[dict]:
         with self.SessionLocal() as session:
@@ -52,7 +56,7 @@ class DatabaseAdapter:
             session.commit()
             return record
 
-    def delete(self, model, id: int) -> List[dict]:
+    def delete(self, model, id) -> List[dict]:
         with self.SessionLocal() as session:
             record = session.query(model).filter(model.id == id).first()
             session.delete(record)
@@ -65,13 +69,26 @@ class DatabaseAdapter:
             session.commit()
             return result.fetchall()
 
-    def delete_by_value(self, model, parameter: str, parameter_value: Any) -> List[dict]:
+    def delete_by_value(
+        self, model, parameter: str, parameter_value: Any
+    ) -> List[dict]:
         with self.SessionLocal() as session:
-            records = session.query(model).filter(getattr(model, parameter) == parameter_value).all()
+            records = (
+                session.query(model)
+                .filter(getattr(model, parameter) == parameter_value)
+                .all()
+            )
             for record in records:
                 session.delete(record)
             session.commit()
             return records
+
+    def get_by_values(self, model, conditions: dict):
+        with self.SessionLocal() as session:
+            query = session.query(model)
+            for key, value in conditions.items():
+                query = query.filter(getattr(model, key) == value)
+            return query.all()
 
 
 adapter = DatabaseAdapter()

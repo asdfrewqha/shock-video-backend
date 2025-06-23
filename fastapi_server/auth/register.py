@@ -1,35 +1,35 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User
 from models.schemas.auth_schemas import UserCreate, UserResponse
 from fastapi.responses import JSONResponse
 from models.hashing.passlib_hasher import Hasher
+
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def register(user: UserCreate):
 
-    user_check = adapter.get_by_value(User, 'username', user.username)
+    user_check = adapter.get_by_value(User, "username", user.username)
 
     if user_check != []:
         return JSONResponse(content={"message": "Already exists"}, status_code=409)
-    
+
     new_user = {
-        'username':user.username,
-        'hashed_password':Hasher.get_password_hash(user.password),
-        'role':user.role
+        "username": user.username,
+        "hashed_password": Hasher.get_password_hash(user.password),
+        "role": user.role,
     }
 
     adapter.insert(User, new_user)
 
-    new_user_db = adapter.get_by_value(User, 'username', user.username)[0]
-
+    new_user_db = adapter.get_by_value(User, "username", user.username)[0]
 
     response_user = UserResponse(
-        id=new_user_db.id,
-        username=new_user_db.username,
-        role=new_user_db.role
+        id=new_user_db.id, username=new_user_db.username, role=new_user_db.role
     )
 
     return response_user
