@@ -24,7 +24,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/my-fastapi-app:latest
+          tags: asdfrewqha/shock-fastapi-backend:latest
+
 
       - name: Deploy on server via SSH
         uses: appleboy/ssh-action@v0.1.8
