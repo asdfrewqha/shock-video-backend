@@ -10,5 +10,5 @@ bcrypt==4.0.1
 supabase==2.16.0
 python-multipart
 moviepy==1.0.3
-opencv-python
+opencv-python==4.9.0.80
 uuid_v7

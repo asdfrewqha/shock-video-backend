@@ -1,20 +1,19 @@
-FROM python:3.13-alpine
+FROM python:3.10-slim
 
-RUN apk add --no-cache \
-    build-base \
-    cmake \
-    pkgconfig \
-    jpeg-dev \
-    zlib-dev \
-    libjpeg \
-    libpng \
-    libwebp \
-    libavif \
-    libressl-dev
+WORKDIR /app
 
 COPY ./requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+
+RUN apt-get update && apt-get install -y \
+    build-essential cmake git libgtk2.0-dev pkg-config \
+    libavcodec-dev libavformat-dev libswscale-dev \
+    libv4l-dev libxvidcore-dev libx264-dev \
+    libjpeg-dev libpng-dev libtiff-dev \
+    gfortran openexr libatlas-base-dev \
+    python3-dev python3-numpy libtbb2 libtbb-dev \
+    libdc1394-22-dev && \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt
 
 COPY . .
 
