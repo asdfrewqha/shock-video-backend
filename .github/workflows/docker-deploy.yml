@@ -24,8 +24,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: asdfrewqha/shock-fastapi-backend:latest
-
+          tags: ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
 
       - name: Deploy on server via SSH
         uses: appleboy/ssh-action@v0.1.8
@@ -36,9 +35,9 @@ jobs:
           script: |
             docker stop fastapi-container || true
             docker rm fastapi-container || true
-            docker pull ${{ secrets.DOCKER_USERNAME }}/my-fastapi-app:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
             docker run -d \
               --name fastapi-container \
               --env-file ~/fastapi/.env \
               -p 8000:8000 \
-              ${{ secrets.DOCKER_USERNAME }}/my-fastapi-app:latest
+              ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
