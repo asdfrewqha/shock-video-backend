@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10
 
 WORKDIR /app
 
@@ -10,8 +10,7 @@ RUN apt-get update && apt-get install -y \
     libv4l-dev libxvidcore-dev libx264-dev \
     libjpeg-dev libpng-dev libtiff-dev \
     gfortran openexr libatlas-base-dev \
-    python3-dev python3-numpy libtbb2 libtbb-dev \
-    libdc1394-22-dev && \
+    python3-dev python3-numpy libtbb-dev && \
     pip install --upgrade pip && \
     pip install -r requirements.txt
 
