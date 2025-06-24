@@ -1,0 +1,30 @@
+name: Build and Deploy FastAPI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t my-fastapi-app .
+
+      - name: Login to server and deploy
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker pull my-fastapi-app || true
+            docker stop fastapi-container || true
+            docker rm fastapi-container || true
+            docker build -t my-fastapi-app .
+            docker run -d --name fastapi-container -p 8000:8000 my-fastapi-app
