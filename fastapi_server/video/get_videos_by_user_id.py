@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import Video
 
+
 router = APIRouter()
 
 

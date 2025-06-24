@@ -1,0 +1,6 @@
+[flake8]
+max-line-length = 100
+exclude = .git,__pycache__,dockerfile,docker-compose.yml,.env,requirements.txt
+import-order-style = google
+application-import-names = fastapi_server,models,config
+inline-quotes = "

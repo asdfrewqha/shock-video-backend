@@ -6,6 +6,7 @@ from models.db_source.db_adapter import adapter
 from models.schemas.auth_schemas import UserResponse
 from models.tables.db_tables import User
 
+
 router = APIRouter()
 
 

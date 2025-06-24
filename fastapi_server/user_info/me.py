@@ -9,6 +9,7 @@ from models.schemas.auth_schemas import UserResponse
 from models.tables.db_tables import User
 from models.tokens.token_manager import TokenManager
 
+
 router = APIRouter()
 
 Bear = HTTPBearer(auto_error=False)

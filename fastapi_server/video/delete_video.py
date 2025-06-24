@@ -15,6 +15,7 @@ from models.schemas.auth_schemas import VideoRequest
 from models.tables.db_tables import User, Video
 from models.tokens.token_manager import TokenManager
 
+
 router = APIRouter()
 Bear = HTTPBearer(auto_error=False)
 logging.basicConfig(level=logging.INFO)

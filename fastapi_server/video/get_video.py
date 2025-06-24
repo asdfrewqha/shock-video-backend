@@ -7,6 +7,7 @@ from models.db_source.db_adapter import adapter
 from models.schemas.auth_schemas import VideoResponse
 from models.tables.db_tables import Video
 
+
 router = APIRouter()
 
 Bear = HTTPBearer(auto_error=False)

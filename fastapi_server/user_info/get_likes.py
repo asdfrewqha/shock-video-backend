@@ -8,6 +8,7 @@ from models.db_source.db_adapter import adapter
 from models.tables.db_tables import Like, User
 from models.tokens.token_manager import TokenManager
 
+
 router = APIRouter()
 Bear = HTTPBearer(auto_error=False)
 

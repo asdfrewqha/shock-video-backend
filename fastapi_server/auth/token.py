@@ -7,6 +7,7 @@ from models.schemas.auth_schemas import Tokens, UserLogin
 from models.tables.db_tables import User
 from models.tokens.token_manager import TokenManager
 
+
 router = APIRouter()
 
 

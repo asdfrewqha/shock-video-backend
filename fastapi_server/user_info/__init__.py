@@ -6,6 +6,7 @@ from fastapi_server.user_info.get_user_by_id import router as gubi_router
 from fastapi_server.user_info.me import router as me_router
 from fastapi_server.user_info.upload_pfp import router as upd_pfp_router
 
+
 router = APIRouter()
 
 

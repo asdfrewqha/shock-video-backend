@@ -9,6 +9,7 @@ from models.hashing.passlib_hasher import Hasher
 from models.schemas.auth_schemas import UserCreate, UserResponse
 from models.tables.db_tables import User
 
+
 router = APIRouter()
 
 

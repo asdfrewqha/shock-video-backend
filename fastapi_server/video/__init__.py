@@ -8,6 +8,7 @@ from fastapi_server.video.like_video import router as lik_router
 from fastapi_server.video.upload_video import router as upd_router
 from fastapi_server.video.view_video import router as vew_router
 
+
 router = APIRouter()
 
 router.include_router(upd_router)

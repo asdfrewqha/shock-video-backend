@@ -19,6 +19,7 @@ from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User, Video
 from models.tokens.token_manager import TokenManager
 
+
 mimetypes.add_type("image/webp", ".webp")
 mimetypes.add_type("video/mp4", ".mp4")
 mimetypes.add_type("video/quicktime", ".mov")
@@ -194,7 +195,7 @@ async def upload_video(
 
         size = os.path.getsize(input_path)
         logger.info(
-            f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user_db.username}"
+            f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user_db.username}" # noqa
         )
 
         if mime_type.startswith("video/"):
