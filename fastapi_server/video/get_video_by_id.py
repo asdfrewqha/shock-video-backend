@@ -1,8 +1,10 @@
-from fastapi import APIRouter
-from models.schemas.auth_schemas import VideoResponse
-from models.db_source.db_adapter import adapter
-from models.tables.db_tables import Video
 from uuid import UUID
+
+from fastapi import APIRouter
+
+from models.db_source.db_adapter import adapter
+from models.schemas.auth_schemas import VideoResponse
+from models.tables.db_tables import Video
 
 router = APIRouter()
 

@@ -1,9 +1,11 @@
+from random import choice
+
 from fastapi import APIRouter, Security
 from fastapi.security import HTTPBearer
+
 from models.db_source.db_adapter import adapter
 from models.schemas.auth_schemas import VideoResponse
 from models.tables.db_tables import Video
-from random import choice
 
 router = APIRouter()
 

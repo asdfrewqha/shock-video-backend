@@ -1,6 +1,8 @@
-from jose import jwt, JWTError
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Any, Dict
+
+from jose import JWTError, jwt
+
 from config import RANDOM_SECRET
 
 
@@ -21,18 +23,20 @@ class TokenManager:
             )
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(
-            to_encode, TokenManager.SECRET_KEY, algorithm=TokenManager.ALGORITHM
-        )
+            to_encode,
+            TokenManager.SECRET_KEY,
+            algorithm=TokenManager.ALGORITHM)
         return encoded_jwt
 
     @staticmethod
     def decode_token(token: str) -> Dict[str, Any]:
         try:
             payload = jwt.decode(
-                token, TokenManager.SECRET_KEY, algorithms=[TokenManager.ALGORITHM]
-            )
+                token, TokenManager.SECRET_KEY, algorithms=[
+                    TokenManager.ALGORITHM])
 
-            if datetime.utcfromtimestamp(payload.get("exp")) < datetime.utcnow():
+            if datetime.utcfromtimestamp(
+                    payload.get("exp")) < datetime.utcnow():
                 return {"error": "Token has expired"}
             return payload
         except JWTError:

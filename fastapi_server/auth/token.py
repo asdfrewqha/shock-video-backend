@@ -1,15 +1,17 @@
 from fastapi import APIRouter, status
-from models.db_source.db_adapter import adapter
-from models.tables.db_tables import User
-from models.schemas.auth_schemas import UserLogin, Tokens
 from fastapi.responses import JSONResponse
+
+from models.db_source.db_adapter import adapter
 from models.hashing.passlib_hasher import Hasher
+from models.schemas.auth_schemas import Tokens, UserLogin
+from models.tables.db_tables import User
 from models.tokens.token_manager import TokenManager
 
 router = APIRouter()
 
 
-@router.post("/token", response_model=Tokens, status_code=status.HTTP_201_CREATED)
+@router.post("/token", response_model=Tokens,
+             status_code=status.HTTP_201_CREATED)
 async def token(user: UserLogin):
 
     bd_user = adapter.get_by_value(User, "username", user.username)
@@ -29,12 +31,12 @@ async def token(user: UserLogin):
         )
 
     access_token = TokenManager.create_token(
-        {"username": user.username, "type": "access"},
+        {"sub": str(bd_user.id), "type": "access"},
         TokenManager.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
 
     refresh_token = TokenManager.create_token(
-        {"username": user.username, "type": "refresh"},
+        {"sub": str(bd_user.id), "type": "refresh"},
         TokenManager.REFRESH_TOKEN_EXPIRE_MINUTES,
     )
 

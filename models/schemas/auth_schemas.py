@@ -1,6 +1,8 @@
-from pydantic import BaseModel, UUID4
-from typing import Optional
 from enum import Enum
+from typing import Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
 
 
 class Role(str, Enum):
@@ -25,20 +27,24 @@ class Tokens(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: int
+    id: UUID
     username: str
     role: Role
-    avatar_url: str
+    avatar_url: Optional[str] = ""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class VideoResponse(BaseModel):
-    id: UUID4
+    id: UUID
     url: str
-    author_id: int
+    author_id: UUID
     views: int
     likes: int
     dislikes: int
     description: str
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class VideoRequest(BaseModel):

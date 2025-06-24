@@ -1,11 +1,14 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Security
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
-from models.db_source.db_adapter import adapter
-from models.tables.db_tables import Video, User, Like
-from models.schemas.auth_schemas import VideoRequest
-from models.tokens.token_manager import TokenManager
+
 from fastapi_server.video.delete_video import extract_uuid_from_url
+from models.db_source.db_adapter import adapter
+from models.schemas.auth_schemas import VideoRequest
+from models.tables.db_tables import Like, User, Video
+from models.tokens.token_manager import TokenManager
 
 router = APIRouter()
 Bear = HTTPBearer(auto_error=False)
@@ -46,21 +49,27 @@ async def like_video(
 
     if "error" in data or data.get("type") != "access":
         return JSONResponse(
-            content={"message": "Invalid token", "status": "error"}, status_code=401
-        )
+            content={
+                "message": "Invalid token",
+                "status": "error"},
+            status_code=401)
 
-    user = adapter.get_by_value(User, "username", data["username"])
+    user = adapter.get_by_id(User, UUID(data["sub"]))
     if not user:
         return JSONResponse(
-            content={"message": "Invalid user", "status": "error"}, status_code=401
-        )
-    user_id = user[0].id
+            content={
+                "message": "Invalid user",
+                "status": "error"},
+            status_code=401)
+    user_id = data["sub"]
 
     video = adapter.get_by_value(Video, "id", video_id)
     if not video:
         return JSONResponse(
-            content={"message": "Video not found", "status": "error"}, status_code=404
-        )
+            content={
+                "message": "Video not found",
+                "status": "error"},
+            status_code=404)
     video_db = video[0]
 
     existing_like = adapter.get_by_values(
@@ -88,15 +97,17 @@ async def like_video(
                 }
             )
 
-    adapter.insert(Like, {"user_id": user_id, "video_id": video_id, "like": like})
+    adapter.insert(Like,
+                   {"user_id": user_id,
+                    "video_id": video_id,
+                    "like": like})
     if like:
         video_db.likes += 1
     else:
         video_db.dislikes += 1
 
-    adapter.update(
-        Video, {"likes": video_db.likes, "dislikes": video_db.dislikes}, video_id
-    )
+    adapter.update(Video, {"likes": video_db.likes,
+                           "dislikes": video_db.dislikes}, video_id)
     return JSONResponse(
-        content={"message": f"Video {'liked' if like else 'disliked'} successfully"}
-    )
+        content={
+            "message": f"Video {'liked' if like else 'disliked'} successfully"})

@@ -1,9 +1,11 @@
+from typing import Any, List
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-from typing import List, Any
-from models.tables.db_tables import Base
+from sqlalchemy.orm import sessionmaker
+
 from config import DATABASE_URL
+from models.tables.db_tables import Base
 
 
 class DatabaseAdapter:
@@ -28,11 +30,15 @@ class DatabaseAdapter:
         with self.SessionLocal() as session:
             return session.query(model).all()
 
-    def get_by_id(self, model, id: int) -> List[dict]:
+    def get_by_id(self, model, id) -> List[dict]:
         with self.SessionLocal() as session:
             return session.query(model).filter(model.id == id).first()
 
-    def get_by_value(self, model, parameter: str, parameter_value: Any) -> List[dict]:
+    def get_by_value(
+            self,
+            model,
+            parameter: str,
+            parameter_value: Any) -> List[dict]:
         with self.SessionLocal() as session:
             return (
                 session.query(model)
