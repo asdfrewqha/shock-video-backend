@@ -1,5 +1,17 @@
 FROM python:3.13-alpine
 
+RUN apk add --no-cache \
+    build-base \
+    cmake \
+    pkgconfig \
+    jpeg-dev \
+    zlib-dev \
+    libjpeg \
+    libpng \
+    libwebp \
+    libavif \
+    libressl-dev
+
 COPY ./requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
