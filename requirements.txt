@@ -11,4 +11,5 @@ supabase==2.16.0
 python-multipart
 moviepy==1.0.3
 opencv-python==4.9.0.80
+numpy==1.26.4
 uuid_v7
