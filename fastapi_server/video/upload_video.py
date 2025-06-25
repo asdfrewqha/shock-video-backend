@@ -4,12 +4,12 @@ import mimetypes
 import os
 import tempfile
 import time
-from uuid import UUID
+from typing import Annotated
 
 import cv2
-from fastapi import APIRouter, File, Form, Security, UploadFile
+from dependencies import check_user
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer
 from moviepy.editor import VideoFileClip
 from supabase import create_client
 from uuid_v7.base import uuid7
@@ -17,7 +17,6 @@ from uuid_v7.base import uuid7
 from config import SUPABASE_API, SUPABASE_URL
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User, Video
-from models.tokens.token_manager import TokenManager
 
 
 mimetypes.add_type("image/webp", ".webp")
@@ -26,7 +25,6 @@ mimetypes.add_type("video/quicktime", ".mov")
 mimetypes.add_type("video/webm", ".webm")
 
 router = APIRouter()
-Bear = HTTPBearer(auto_error=False)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -143,22 +141,11 @@ def gen_blur(input_path, target_resolution=(1080, 1920)):
 
 @router.post("/upload-video/")
 async def upload_video(
-    access_token: str = Security(Bear),
+    user: Annotated[User, Depends(check_user)],
     file: UploadFile = File(...),
     description: str = Form(""),
 ):
-    if not access_token or not access_token.credentials:
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-    data = TokenManager.decode_token(access_token.credentials)
-    if "error" in data or data["type"] != "access":
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-
-    user_db = adapter.get_by_id(User, UUID(data["sub"]))
-    if not user_db:
+    if not user:
         return JSONResponse(
             {"message": "Invalid token", "status": "error"}, status_code=401
         )
@@ -181,7 +168,7 @@ async def upload_video(
         }.get(ext, "application/octet-stream")
 
     random_uuid = uuid7()
-    filepath = f"{user_db.username}/{random_uuid}{ext}"
+    filepath = f"{user.username}/{random_uuid}{ext}"
     public_url = None
     input_path = output_path = inputp = None
 
@@ -195,7 +182,7 @@ async def upload_video(
 
         size = os.path.getsize(input_path)
         logger.info(
-            f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user_db.username}" # noqa
+            f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user.username}" # noqa
         )
 
         if mime_type.startswith("video/"):
@@ -231,7 +218,7 @@ async def upload_video(
             Video,
             {
                 "id": str(random_uuid),
-                "author_id": user_db.id,
+                "author_id": user.id,
                 "url": public_url,
                 "description": description,
             },

@@ -1,25 +1,25 @@
 import logging
 import os
 import re
+from typing import Annotated, Optional, Tuple
 from urllib.parse import urlparse
 from uuid import UUID
 
-from fastapi import APIRouter, Security
+from dependencies import check_user
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse, Response
-from fastapi.security import HTTPBearer
 from supabase import create_client
 
 from config import SUPABASE_API, SUPABASE_URL
 from models.db_source.db_adapter import adapter
 from models.schemas.auth_schemas import VideoRequest
 from models.tables.db_tables import User, Video
-from models.tokens.token_manager import TokenManager
 
 
 router = APIRouter()
-Bear = HTTPBearer(auto_error=False)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+supabase = create_client(SUPABASE_URL, SUPABASE_API)
 
 
 def get_file_suffix(url: str) -> str:
@@ -28,24 +28,24 @@ def get_file_suffix(url: str) -> str:
     return ext.lstrip(".")
 
 
-def extract_uuid_from_url(url: str) -> str | None:
+def extract_uuid_from_url(url: str) -> Optional[Tuple[str, int]]:
     match = re.search(
-        r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}",
+        r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
         url,
     )
-    return match.group(0) if match else None
+    if not match:
+        return None
 
+    try:
+        uuid_obj = UUID(match.group(0))
+        return uuid_obj
+    except ValueError:
+        return None
 
-@router.delete("/delete-video")
+@router.delete("/delete-video", status_code=204)
 async def delete_video(
         video: VideoRequest,
-        access_token: str = Security(Bear)):
-    if not access_token or not access_token.credentials:
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-    data = TokenManager.decode_token(access_token.credentials)
-    supabase = create_client(SUPABASE_URL, SUPABASE_API)
+        user: Annotated[User, Depends(check_user)]):
     if video.uuid:
         id = video.uuid
     elif video.url:
@@ -66,27 +66,13 @@ async def delete_video(
             },
             status_code=400,
         )
-
-    if "error" in data:
-        return JSONResponse(
-            content={
-                "message": data["error"],
-                "status": "error"},
-            status_code=401)
-    if data["type"] != "access":
-        return JSONResponse(
-            content={"message": "Invalid token type", "status": "error"},
-            status_code=401,
-        )
-
-    user_db = adapter.get_by_id(User, UUID(data["sub"]))
-    if not user_db:
+    if not user:
         return JSONResponse(
             content={
                 "message": "Invalid token",
                 "status": "error"},
             status_code=401)
-    video_result = adapter.get_by_value(Video, "id", id)
+    video_result = adapter.get_by_id(Video, id)
     if not video_result:
         return JSONResponse(
             content={
@@ -94,8 +80,7 @@ async def delete_video(
                 "status": "error"},
             status_code=404,
         )
-    video_db = video_result[0]
-    if video_db.author_id != user_db.id:
+    if video_result.author_id != user.id:
         return JSONResponse(
             content={
                 "message": "You're not author of this video",
@@ -103,7 +88,7 @@ async def delete_video(
             status_code=403,
         )
 
-    filepath = f"{user_db.username}/{id}.{get_file_suffix(video_db.url)}"
+    filepath = f"{user.username}/{id}.{get_file_suffix(video_result.url)}"
     supabase.storage.from_("videos").remove([filepath])
     logger.info(filepath)
     adapter.delete(Video, id)
