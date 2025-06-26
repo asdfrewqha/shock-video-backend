@@ -74,6 +74,8 @@ jobs:
 
             echo "Stopping and removing old container if exists..."
             docker container rm -f fastapi-container || true
+            docker container rm -f nginx-container || true
+            docker container rm -f nginx || true
 
             echo "Pulling latest image..."
             docker pull asdfrewqha/shock-fastapi-backend:latest

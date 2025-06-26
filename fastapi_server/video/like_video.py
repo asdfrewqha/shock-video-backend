@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 
 from dependencies import check_user
@@ -17,7 +17,7 @@ router = APIRouter()
 async def like_video(
     video: VideoRequest,
     user: Annotated[User, Depends(check_user)],
-    like: bool = True,
+    like: bool = Query(True)
 ):
     if video.uuid:
         video_id = video.uuid
