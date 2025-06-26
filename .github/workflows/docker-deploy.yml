@@ -51,6 +51,8 @@ jobs:
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
           cache-to: type=inline
 
+      - name: Show files before SCP
+        run: ls -l
       - name: Copy docker-compose.yml and nginx.conf to server
         uses: appleboy/scp-action@v0.1.0
         with:
