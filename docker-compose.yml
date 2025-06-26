@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   fastapi:
-    image: ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
+    image: asdfrewqha/shock-fastapi-backend:latest
     container_name: fastapi-container
     env_file:
       - /root/fastapi/.env
