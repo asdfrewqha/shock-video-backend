@@ -18,5 +18,5 @@ SUPABASE_API = os.getenv("SUPABASE_API")
 UUID_SHA = os.getenv("UUID_SHA")
 
 DATABASE_URL = (
-    f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=disable"
+    f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=required"
 )
