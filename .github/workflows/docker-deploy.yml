@@ -72,16 +72,17 @@ jobs:
             set -e
             cd /root/fastapi
 
-            echo "Stopping old containers if exist..."
-            docker compose down || true
+            echo "Stopping and removing old container if exists..."
+            docker container rm -f fastapi-container || true
 
             echo "Pulling latest image..."
-            docker pull asdfrewqha/shock-fastapi-backend:latest
+            docker pull your_dockerhub_username/shock-fastapi-backend:latest
 
             echo "Starting containers..."
             docker compose up -d --build --remove-orphans
 
             echo "Deployment finished successfully."
+
 
       - name: Telegram notification (success)
         if: success()
