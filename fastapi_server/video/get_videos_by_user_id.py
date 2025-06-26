@@ -1,6 +1,7 @@
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 
 from models.db_source.db_adapter import adapter
@@ -10,7 +11,7 @@ from models.tables.db_tables import Video
 router = APIRouter()
 
 
-@router.get("/get-videos-by-user-id")
+@router.get("/get-videos-by-user-id/{uuid}")
 async def get_videos_by_user_id(uuid: UUID):
     videos = adapter.get_by_value(Video, "author_id", uuid)
     ids = []
