@@ -32,7 +32,7 @@ def view_video(video: VideoRequest):
             },
             status_code=400,
         )
-    video_result = adapter.get_by_value(Video, "id", id)
+    video_result = await adapter.get_by_value(Video, "id", id)
     if not video_result:
         return JSONResponse(
             content={
@@ -42,5 +42,5 @@ def view_video(video: VideoRequest):
         )
     video_db = video_result[0]
     views = video_db.views + 1
-    adapter.update(Video, {"views": views}, id)
+    await adapter.update(Video, {"views": views}, id)
     return JSONResponse(content={"message": "Views updated"})

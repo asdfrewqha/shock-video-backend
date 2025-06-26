@@ -12,17 +12,17 @@ from models.tables.db_tables import User
 
 router = APIRouter()
 
-
 @router.post("/register", response_model=UserResponse,
              status_code=status.HTTP_201_CREATED)
 async def register(user: UserCreate):
-    user_check = adapter.get_by_value(User, "username", user.username)
+    user_check = await adapter.get_by_value(User, "username", user.username)
 
-    if user_check != []:
+    if user_check:
         return JSONResponse(
-            content={
-                "message": "Already exists"},
-            status_code=409)
+            content={"message": "Already exists"},
+            status_code=409
+        )
+
     new_id = uuid5(UUID(UUID_SHA), user.username)
     new_user = {
         "id": new_id,
@@ -31,12 +31,13 @@ async def register(user: UserCreate):
         "role": user.role,
     }
 
-    adapter.insert(User, new_user)
+    await adapter.insert(User, new_user)
 
-    new_user_db = adapter.get_by_value(User, "username", user.username)[0]
+    new_user_db = await adapter.get_by_value(User, "username", user.username)
+    user_instance = new_user_db[0]
 
-    response_user = UserResponse(
-        id=new_user_db.id, username=new_user_db.username, role=new_user_db.role
+    return UserResponse(
+        id=user_instance.id,
+        username=user_instance.username,
+        role=user_instance.role
     )
-
-    return response_user

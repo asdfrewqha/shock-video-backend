@@ -9,6 +9,7 @@ from fastapi_server.user_info import router as user_info_router
 from fastapi_server.video import router as video_router
 from models.db_source.db_adapter import adapter
 
+
 app = FastAPI()
 
 app.add_middleware(

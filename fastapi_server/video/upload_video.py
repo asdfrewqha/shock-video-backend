@@ -1,3 +1,4 @@
+import asyncio
 import gc
 import logging
 import mimetypes
@@ -32,33 +33,17 @@ supabase = create_client(SUPABASE_URL, SUPABASE_API)
 bucket = supabase.storage.from_("videos")
 
 ALLOWED_EXTENSIONS = {
-    ".mp4",
-    ".mov",
-    ".webm",
-    ".avi",
-    ".mkv",
-    ".flv",
-    ".wmv",
-    ".m4v",  # video
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".bmp",
-    ".gif",
-    ".webp",  # image
+    ".mp4", ".mov", ".webm", ".avi", ".mkv", ".flv", ".wmv", ".m4v",  # видео
+    ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp",  # изображения
 }
 
 
 def supabase_upd(content_type, filepath, file_data):
-    bucket.upload(
-        path=filepath,
-        file=file_data,
-        file_options={
-            "content-type": content_type})
+    bucket.upload(path=filepath, file=file_data, file_options={"content-type": content_type})
     return bucket.get_public_url(filepath)
 
 
-def compress_video(input_path, output_path):
+def compress_video_sync(input_path, output_path):
     clip = VideoFileClip(input_path)
     try:
         duration = clip.duration
@@ -75,7 +60,7 @@ def compress_video(input_path, output_path):
         clip.close()
 
 
-def is_horizontal(video_path):
+def is_horizontal_sync(video_path):
     clip = VideoFileClip(video_path)
     try:
         width, height = clip.size
@@ -84,7 +69,7 @@ def is_horizontal(video_path):
         clip.close()
 
 
-def gen_blur(input_path, target_resolution=(1080, 1920)):
+def gen_blur_sync(input_path, target_resolution=(1080, 1920)):
     output_width, output_height = target_resolution
     with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
         output_path = tmp.name
@@ -97,26 +82,16 @@ def gen_blur(input_path, target_resolution=(1080, 1920)):
 
         def process_frame(frame):
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-            resized = cv2.resize(
-                frame_bgr, (int(width * scale_fg), int(height * scale_fg))
-            )
-            background = cv2.resize(
-                frame_bgr, (int(width * scale_bg), int(height * scale_bg))
-            )
+            resized = cv2.resize(frame_bgr, (int(width * scale_fg), int(height * scale_fg)))
+            background = cv2.resize(frame_bgr, (int(width * scale_bg), int(height * scale_bg)))
             y = (background.shape[0] - output_height) // 2
             x = (background.shape[1] - output_width) // 2
-            background = background[y: y + output_height, x: x + output_width]
-            small = cv2.resize(
-                background, (output_width // 4, output_height // 4))
-            blurred = cv2.resize(
-                cv2.GaussianBlur(
-                    small, (25, 25), 0), (output_width, output_height))
+            background = background[y : y + output_height, x : x + output_width]
+            small = cv2.resize(background, (output_width // 4, output_height // 4))
+            blurred = cv2.resize(cv2.GaussianBlur(small, (25, 25), 0), (output_width, output_height))
             x_offset = (output_width - resized.shape[1]) // 2
             y_offset = (output_height - resized.shape[0]) // 2
-            blurred[
-                y_offset: y_offset + resized.shape[0],
-                x_offset: x_offset + resized.shape[1],
-            ] = resized
+            blurred[y_offset: y_offset + resized.shape[0], x_offset : x_offset + resized.shape[1]] = resized
             return cv2.cvtColor(blurred, cv2.COLOR_BGR2RGB)
 
         processed = clip.fl_image(process_frame)
@@ -146,14 +121,11 @@ async def upload_video(
     description: str = Form(""),
 ):
     if not user:
-        return JSONResponse(
-            {"message": "Invalid token", "status": "error"}, status_code=401
-        )
+        return JSONResponse({"message": "Invalid token", "status": "error"}, status_code=401)
 
     ext = os.path.splitext(file.filename)[-1].lower()
     if ext not in ALLOWED_EXTENSIONS:
-        return JSONResponse(
-            {"message": "Unsupported file extension"}, status_code=400)
+        return JSONResponse({"message": "Unsupported file extension"}, status_code=400)
 
     mime_type = mimetypes.guess_type(file.filename)[0]
     if not mime_type or mime_type == "application/octet-stream":
@@ -181,15 +153,15 @@ async def upload_video(
             input_path = tmp.name
 
         size = os.path.getsize(input_path)
-        logger.info(
-            f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user.username}"  # noqa
-        )
+        logger.info(f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user.username}")
+
+        loop = asyncio.get_running_loop()
 
         if mime_type.startswith("video/"):
-            if is_horizontal(input_path):
-                logger.info(
-                    "Horizontal video — generating blurred background.")
-                inputp = gen_blur(input_path)
+            horizontal = await loop.run_in_executor(None, is_horizontal_sync, input_path)
+            if horizontal:
+                logger.info("Horizontal video — generating blurred background.")
+                inputp = await loop.run_in_executor(None, gen_blur_sync, input_path)
                 with open(inputp, "rb") as f:
                     public_url = supabase_upd("video/mp4", filepath, f)
             elif size < 50 * 1024 * 1024:
@@ -199,22 +171,22 @@ async def upload_video(
                 logger.info("Compressing vertical video before upload.")
                 with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as out:
                     output_path = out.name
-                    compress_video(input_path, output_path)
-                    with open(output_path, "rb") as f:
-                        public_url = supabase_upd("video/mp4", filepath, f)
+                await loop.run_in_executor(None, compress_video_sync, input_path, output_path)
+                with open(output_path, "rb") as f:
+                    public_url = supabase_upd("video/mp4", filepath, f)
 
         elif mime_type.startswith("image/"):
             logger.info("Uploading image file.")
             public_url = supabase_upd(mime_type, filepath, content)
         else:
-            return JSONResponse(
-                {"message": "Unsupported file type"}, status_code=400)
+            return JSONResponse({"message": "Unsupported file type"}, status_code=400)
 
         if not public_url:
             return JSONResponse({"message": "Upload failed"}, status_code=500)
 
         logger.info(f"File uploaded successfully: {public_url}")
-        adapter.insert(
+
+        await adapter.insert(
             Video,
             {
                 "id": str(random_uuid),
@@ -223,8 +195,7 @@ async def upload_video(
                 "description": description,
             },
         )
-        return JSONResponse(
-            {"message": "success", "url": public_url}, status_code=201)
+        return JSONResponse({"message": "success", "url": public_url}, status_code=201)
 
     finally:
         for path in [input_path, output_path, inputp]:

@@ -17,7 +17,7 @@ async def get_likes(user: Annotated[User, Depends(check_user)]):
         return JSONResponse(
             {"message": "Invalid token", "status": "error"}, status_code=401
         )
-    liked_videos_db = adapter.get_by_values(
+    liked_videos_db = await adapter.get_by_values(
         Like, {"user_id": user.id, "like": True})
     liked_videos = []
     for like in liked_videos_db:
@@ -31,7 +31,7 @@ async def get_dislikes(user: Annotated[User, Depends(check_user)]):
         return JSONResponse(
             {"message": "Invalid token", "status": "error"}, status_code=401
         )
-    disliked_videos_db = adapter.get_by_values(
+    disliked_videos_db = await adapter.get_by_values(
         Like, {"user_id": user.id, "like": False}
     )
     disliked_videos = []

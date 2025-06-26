@@ -1,5 +1,6 @@
-import os
-import tempfile
+import asyncio
+import io
+import logging
 from typing import Annotated
 
 from PIL import Image
@@ -14,6 +15,7 @@ from models.tables.db_tables import User
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 supabase = create_client(SUPABASE_URL, SUPABASE_API)
 bucket = supabase.storage.from_("pfps")
@@ -29,88 +31,113 @@ def center_crop(image: Image.Image) -> Image.Image:
     return image.crop((left, top, right, bottom))
 
 
+async def supabase_upload_async(filepath: str, image_bytes: bytes):
+    loop = asyncio.get_running_loop()
+    def upload():
+        bucket.upload(
+            path=filepath,
+            file=io.BytesIO(image_bytes),
+            file_options={"content-type": "image/png"},
+        )
+        return bucket.get_public_url(filepath)
+    return await loop.run_in_executor(None, upload)
+
+
+async def supabase_remove_async(filepath: str):
+    loop = asyncio.get_running_loop()
+    def remove():
+        return bucket.remove(paths=[filepath])
+    return await loop.run_in_executor(None, remove)
+
+
 @router.post("/profile-picture")
 async def upld_pfp(
-        user: Annotated[User, Depends(check_user)],
-        file: UploadFile = File(...)):
+    user: Annotated[User, Depends(check_user)],
+    file: UploadFile = File(...),
+):
     if not user:
-        return JSONResponse(
-            {"message": "Invalid token", "status": "error"}, status_code=401
-        )
+        return JSONResponse({"message": "Invalid token", "status": "error"}, status_code=401)
+
     if user.avatar_url:
         return JSONResponse(
-            content={
-                "message": "You have an avatar. If you want to change it - use other methods"
-            },
+            {"message": "You have an avatar. If you want to change it - use other methods"},
             status_code=409,
         )
+
     filename = f"{user.username}/avatar_{user.id}.png"
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-        tmp_path = tmp.name
+
     try:
-        with Image.open(file.file) as img:
-            img = img.convert("RGBA")
-            img = center_crop(img)
-            img = img.resize((512, 512))
-            img.save(tmp_path, format="PNG")
-        with open(tmp_path, "rb") as f:
-            bucket.upload(
-                path=filename, file=f, file_options={
-                    "content-type": "image/png"})
-        public_url = bucket.get_public_url(filename)
-        adapter.update_by_id(User, user.id, {"avatar_url": public_url})
-        return JSONResponse(
-            {"message": "Profile picture uploaded", "url": public_url}, status_code=201
-        )
-    finally:
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
+        img = Image.open(file.file).convert("RGBA")
+        img = center_crop(img)
+        img = img.resize((512, 512))
+
+        with io.BytesIO() as output:
+            img.save(output, format="PNG")
+            image_bytes = output.getvalue()
+
+        public_url = await supabase_upload_async(filename, image_bytes)
+
+        # Используй await если адаптер асинхронный
+        await adapter.update_by_id(User, user.id, {"avatar_url": public_url})
+
+        return JSONResponse({"message": "Profile picture uploaded", "url": public_url}, status_code=201)
+
+    except Exception as e:
+        logger.error(f"Error uploading profile picture: {e}")
+        return JSONResponse({"message": "Upload failed"}, status_code=500)
 
 
 @router.put("/profile-picture")
 async def updt_pfp(
-        user: Annotated[User, Depends(check_user)],
-        file: UploadFile = File(...)):
+    user: Annotated[User, Depends(check_user)],
+    file: UploadFile = File(...),
+):
     if not user:
-        return JSONResponse(
-            {"message": "Invalid token", "status": "error"}, status_code=401
-        )
+        return JSONResponse({"message": "Invalid token", "status": "error"}, status_code=401)
+
     filename = f"{user.username}/avatar_{user.id}.png"
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-        tmp_path = tmp.name
+
     try:
-        with Image.open(file.file) as img:
-            img = img.convert("RGBA")
-            img = center_crop(img)
-            img = img.resize((512, 512))
-            img.save(tmp_path, format="PNG")
-        with open(tmp_path, "rb") as f:
-            bucket.remove(paths=[filename])
-            bucket.upload(
-                path=filename, file=f, file_options={
-                    "content-type": "image/png"})
-        public_url = bucket.get_public_url(filename)
-        adapter.update_by_id(User, user.id, {"avatar_url": public_url})
-        return JSONResponse(
-            {"message": "Profile picture updated", "url": public_url}, status_code=200
-        )
-    finally:
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
+        img = Image.open(file.file).convert("RGBA")
+        img = center_crop(img)
+        img = img.resize((512, 512))
+
+        with io.BytesIO() as output:
+            img.save(output, format="PNG")
+            image_bytes = output.getvalue()
+
+        # Удаляем старый аватар (если есть) без ошибок
+        try:
+            await supabase_remove_async(filename)
+        except Exception as e:
+            logger.warning(f"Failed to remove old avatar: {e}")
+
+        public_url = await supabase_upload_async(filename, image_bytes)
+
+        await adapter.update_by_id(User, user.id, {"avatar_url": public_url})
+
+        return JSONResponse({"message": "Profile picture updated", "url": public_url}, status_code=200)
+
+    except Exception as e:
+        logger.error(f"Error updating profile picture: {e}")
+        return JSONResponse({"message": "Update failed"}, status_code=500)
 
 
 @router.delete("/profile-picture", status_code=204)
 async def del_pfp(user: Annotated[User, Depends(check_user)]):
     if not user:
-        return JSONResponse(
-            {"message": "Invalid token", "status": "error"}, status_code=401
-        )
+        return JSONResponse({"message": "Invalid token", "status": "error"}, status_code=401)
+
     if not user.avatar_url:
-        return JSONResponse(
-            {"message": "You don't have any avatars"}, status_code=404
-        )
+        return JSONResponse({"message": "You don't have any avatars"}, status_code=404)
+
     filename = f"{user.username}/avatar_{user.id}.png"
-    bucket.remove(paths=[filename])
-    adapter.update_by_id(User, user.id, {"avatar_url": None})
-    return JSONResponse(
-        {"message": "Profile picture deleted"}, status_code=204)
+
+    try:
+        await supabase_remove_async(filename)
+        await adapter.update_by_id(User, user.id, {"avatar_url": None})
+    except Exception as e:
+        logger.error(f"Error deleting profile picture: {e}")
+        return JSONResponse({"message": "Delete failed"}, status_code=500)
+
+    return JSONResponse(status_code=204)

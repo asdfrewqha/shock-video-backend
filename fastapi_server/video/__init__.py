@@ -6,8 +6,8 @@ from fastapi_server.video.get_video_by_id import router as gid_router
 from fastapi_server.video.get_videos_by_user_id import router as gvi_router
 from fastapi_server.video.like_video import router as lik_router
 from fastapi_server.video.upload_video import router as upd_router
-from fastapi_server.video.view_video import router as vew_router
 from fastapi_server.video.video_streaming import router as vst_router
+from fastapi_server.video.view_video import router as vew_router
 
 
 router = APIRouter()

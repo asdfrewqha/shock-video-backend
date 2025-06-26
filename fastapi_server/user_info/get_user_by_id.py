@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("/get-user-by-id")
 async def get_user_by_id(uuid: UUID):
-    user = adapter.get_by_id(User, uuid)
+    user = await adapter.get_by_id(User, uuid)
     user_resp = UserResponse(
         id=uuid,
         username=user.username,

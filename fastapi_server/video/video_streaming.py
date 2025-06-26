@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, StreamingResponse
-import httpx
 import requests
 
-from config import SUPABASE_API, SUPABASE_URL
+from config import SUPABASE_API
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import Video
 
@@ -13,7 +12,7 @@ router = APIRouter()
 
 @router.get("/stream-video/{uuid}")
 def stream_by_uuid_sync(uuid: str, request: Request):
-    video: Video = adapter.get_by_id(Video, uuid)
+    video = await adapter.get_by_id(Video, uuid)
     if not video or not video.url:
         return JSONResponse(status_code=404, content={"detail": "Video not found"})
 

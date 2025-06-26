@@ -13,7 +13,7 @@ router = APIRouter()
 
 @router.get("/get-videos-by-user-id/{uuid}")
 async def get_videos_by_user_id(uuid: UUID):
-    videos = adapter.get_by_value(Video, "author_id", uuid)
+    videos = await adapter.get_by_value(Video, "author_id", uuid)
     ids = []
     for video in videos:
         ids.append(str(video.id))

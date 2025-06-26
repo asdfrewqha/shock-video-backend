@@ -1,105 +1,105 @@
 from typing import Any, List
 
-from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 
 from config import DATABASE_URL
 from models.tables.db_tables import Base
 
 
-class DatabaseAdapter:
+class AsyncDatabaseAdapter:
     def __init__(self, database_url: str = DATABASE_URL) -> None:
-        self.engine = create_engine(database_url)
-        self.SessionLocal = sessionmaker(bind=self.engine)
-        self.connection = None
+        self.engine = create_async_engine(database_url, echo=False, future=True)
+        self.SessionLocal = sessionmaker(
+            bind=self.engine, class_=AsyncSession, expire_on_commit=False
+        )
 
-    def connect(self) -> None:
+    async def connect(self) -> None:
         try:
-            self.connection = self.SessionLocal()
-            print("Соединение с базой данных установлено.")
+            async with self.engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            print("Соединение с базой данных установлено и таблицы инициализированы.")
         except SQLAlchemyError as e:
             print(f"Ошибка подключения к базе данных: {e}")
             raise
 
-    def initialize_tables(self) -> None:
-        print("Таблицы созданы или уже существуют")
-        Base.metadata.create_all(bind=self.engine)
+    async def get_all(self, model) -> List[Any]:
+        async with self.SessionLocal() as session:
+            result = await session.execute(select(model))
+            return result.scalars().all()
 
-    def get_all(self, model) -> List[dict]:
-        with self.SessionLocal() as session:
-            return session.query(model).all()
+    async def get_by_id(self, model, id) -> Any:
+        async with self.SessionLocal() as session:
+            result = await session.execute(select(model).where(model.id == id))
+            return result.scalar_one_or_none()
 
-    def get_by_id(self, model, id) -> List[dict]:
-        with self.SessionLocal() as session:
-            return session.query(model).filter(model.id == id).first()
-
-    def get_by_value(
-            self,
-            model,
-            parameter: str,
-            parameter_value: Any) -> List[dict]:
-        with self.SessionLocal() as session:
-            return (
-                session.query(model)
-                .filter(getattr(model, parameter) == parameter_value)
-                .all()
+    async def get_by_value(self, model, parameter: str, parameter_value: Any) -> List[Any]:
+        async with self.SessionLocal() as session:
+            result = await session.execute(
+                select(model).where(getattr(model, parameter) == parameter_value)
             )
+            return result.scalars().all()
 
-    def insert(self, model, insert_dict: dict) -> List[dict]:
-        with self.SessionLocal() as session:
+    async def insert(self, model, insert_dict: dict) -> Any:
+        async with self.SessionLocal() as session:
             record = model(**insert_dict)
             session.add(record)
-            session.commit()
-            session.refresh(record)
+            await session.commit()
+            await session.refresh(record)
             return record
 
-    def update(self, model, update_dict: dict, id: int) -> List[dict]:
-        with self.SessionLocal() as session:
-            record = session.query(model).filter(model.id == id).first()
-            for key, value in update_dict.items():
-                setattr(record, key, value)
-            session.commit()
+    async def update(self, model, update_dict: dict, id: int) -> Any:
+        async with self.SessionLocal() as session:
+            result = await session.execute(select(model).where(model.id == id))
+            record = result.scalar_one_or_none()
+            if record:
+                for key, value in update_dict.items():
+                    setattr(record, key, value)
+                await session.commit()
             return record
 
-    def update_by_id(self, model, record_id, updates: dict):
-        with self.SessionLocal() as session:
-            session.query(model).filter(model.id == record_id).update(updates)
-            session.commit()
+    async def update_by_id(self, model, record_id: int, updates: dict):
+        async with self.SessionLocal() as session:
+            await session.execute(
+                model.__table__.update().where(model.id == record_id).values(**updates)
+            )
+            await session.commit()
 
-    def delete(self, model, id) -> List[dict]:
-        with self.SessionLocal() as session:
-            record = session.query(model).filter(model.id == id).first()
-            session.delete(record)
-            session.commit()
+    async def delete(self, model, id: int) -> Any:
+        async with self.SessionLocal() as session:
+            result = await session.execute(select(model).where(model.id == id))
+            record = result.scalar_one_or_none()
+            if record:
+                await session.delete(record)
+                await session.commit()
             return record
 
-    def execute_with_request(self, request: str) -> List[dict]:
-        with self.SessionLocal() as session:
-            result = session.execute(request)
-            session.commit()
+    async def execute_with_request(self, request) -> List[Any]:
+        async with self.SessionLocal() as session:
+            result = await session.execute(request)
+            await session.commit()
             return result.fetchall()
 
-    def delete_by_value(
-        self, model, parameter: str, parameter_value: Any
-    ) -> List[dict]:
-        with self.SessionLocal() as session:
-            records = (
-                session.query(model)
-                .filter(getattr(model, parameter) == parameter_value)
-                .all()
+    async def delete_by_value(self, model, parameter: str, parameter_value: Any) -> List[Any]:
+        async with self.SessionLocal() as session:
+            result = await session.execute(
+                select(model).where(getattr(model, parameter) == parameter_value)
             )
+            records = result.scalars().all()
             for record in records:
-                session.delete(record)
-            session.commit()
+                await session.delete(record)
+            await session.commit()
             return records
 
-    def get_by_values(self, model, conditions: dict):
-        with self.SessionLocal() as session:
-            query = session.query(model)
+    async def get_by_values(self, model, conditions: dict) -> List[Any]:
+        async with self.SessionLocal() as session:
+            query = select(model)
             for key, value in conditions.items():
-                query = query.filter(getattr(model, key) == value)
-            return query.all()
+                query = query.where(getattr(model, key) == value)
+            result = await session.execute(query)
+            return result.scalars().all()
 
 
-adapter = DatabaseAdapter()
+adapter = AsyncDatabaseAdapter()

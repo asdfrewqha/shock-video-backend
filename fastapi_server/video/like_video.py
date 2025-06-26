@@ -12,7 +12,6 @@ from models.tables.db_tables import Like, User, Video
 
 router = APIRouter()
 
-
 @router.post("/like-video")
 async def like_video(
     video: VideoRequest,
@@ -45,7 +44,8 @@ async def like_video(
                 "message": "Invalid user",
                 "status": "error"},
             status_code=401)
-    video = adapter.get_by_id(Video, video_id)
+
+    video = await adapter.get_by_id(Video, video_id)
     if not video:
         return JSONResponse(
             content={
@@ -53,13 +53,13 @@ async def like_video(
                 "status": "error"},
             status_code=404)
 
-    existing_like = adapter.get_by_values(
+    existing_like = await adapter.get_by_values(
         Like, {"user_id": user.id, "video_id": video_id}
     )
 
     if existing_like:
         prev_like = existing_like[0]
-        adapter.delete(Like, prev_like.id)
+        await adapter.delete(Like, prev_like.id)
 
         if prev_like.like:
             video.likes = max(video.likes - 1, 0)
@@ -67,7 +67,7 @@ async def like_video(
             video.dislikes = max(video.dislikes - 1, 0)
 
         if prev_like.like == like:
-            adapter.update(
+            await adapter.update(
                 Video,
                 {"likes": video.likes, "dislikes": video.dislikes},
                 video_id
@@ -78,18 +78,20 @@ async def like_video(
                 }
             )
 
-    adapter.insert(Like,
-                   {"user_id": user.id,
-                    "video_id": video_id,
-                    "like": like})
+    await adapter.insert(Like,
+                         {"user_id": user.id,
+                          "video_id": video_id,
+                          "like": like})
 
     if like:
         video.likes += 1
     else:
         video.dislikes += 1
 
-    adapter.update(Video, {"likes": video.likes,
-                           "dislikes": video.dislikes}, video_id)
+    await adapter.update(Video, {"likes": video.likes,
+                                 "dislikes": video.dislikes}, video_id)
+
     return JSONResponse(
         content={
-            "message": f"Video {'liked' if like else 'disliked'} successfully"})
+            "message": f"Video {'liked' if like else 'disliked'} successfully"
+        })

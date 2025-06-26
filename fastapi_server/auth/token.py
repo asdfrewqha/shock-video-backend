@@ -15,7 +15,7 @@ router = APIRouter()
              status_code=status.HTTP_201_CREATED)
 async def token(user: UserLogin):
 
-    bd_user = adapter.get_by_value(User, "username", user.username)
+    bd_user = await adapter.get_by_value(User, "username", user.username)
 
     if bd_user == []:
         return JSONResponse(

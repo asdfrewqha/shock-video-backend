@@ -73,7 +73,7 @@ async def delete_video(
                 "message": "Invalid token",
                 "status": "error"},
             status_code=401)
-    video_result = adapter.get_by_id(Video, id)
+    video_result = await adapter.get_by_id(Video, id)
     if not video_result:
         return JSONResponse(
             content={
@@ -92,5 +92,5 @@ async def delete_video(
     filepath = f"{user.username}/{id}.{get_file_suffix(video_result.url)}"
     supabase.storage.from_("videos").remove([filepath])
     logger.info(filepath)
-    adapter.delete(Video, id)
+    await adapter.delete(Video, id)
     return Response(status_code=204)
