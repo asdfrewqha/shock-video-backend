@@ -1,6 +1,9 @@
 name: Build and Deploy via Docker Hub
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types: [closed]
     branches:
@@ -13,6 +16,16 @@ jobs:
     environment: production
 
     steps:
+      - name: Telegram notification (start)
+        uses: appleboy/telegram-action@v0.1.0
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: | 
+            Deploy starting:
+            Repo: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Author: ${{ github.actor }}
       - name: Checkout code
         uses: actions/checkout@v3
         with:
@@ -58,29 +71,27 @@ jobs:
 
             echo "Deployment finished successfully."
 
-      - name: Send Telegram notification
+      - name: Telegram notification (success)
         if: success()
-        uses: appleboy/telegram-action@v0.6.0
+        uses: appleboy/telegram-action@v0.1.0
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            Deployment finished successfully
+            Deployment finished successfully:
             Repo: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
-            Merge author: ${{ github.event.pull_request.merged_by.login }}
-            url: ${{ github.event.pull_request.html_url }}
+            Merge author: ${{ github.actor }}
 
-      - name: Send Telegram notification (failure)
+      - name: Telegram notification (fail)
         if: failure()
-        uses: appleboy/telegram-action@v0.6.0
+        uses: appleboy/telegram-action@v0.1.0
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            Deployment failure
+            Deployment failure:
             Repo: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
-            Merge author: ${{ github.event.pull_request.merged_by.login }}
-            url: ${{ github.event.pull_request.html_url }}
+            Author: ${{ github.actor }}
             check workflow logs.
