@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 import uvicorn
 
 from config import FASTAPI_HOST, FASTAPI_PORT
@@ -21,6 +22,11 @@ app.add_middleware(
 app.include_router(auth_router, tags=["Auth"])
 app.include_router(user_info_router, tags=["User info"])
 app.include_router(video_router, tags=["Video"])
+
+
+@app.get("/")
+async def redirect():
+    return RedirectResponse("/docs")
 
 if __name__ == "__main__":
     adapter.initialize_tables()
