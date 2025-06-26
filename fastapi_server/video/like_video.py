@@ -12,6 +12,7 @@ from models.tables.db_tables import Like, User, Video
 
 router = APIRouter()
 
+
 @router.post("/like-video")
 async def like_video(
     video: VideoRequest,

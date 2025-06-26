@@ -1,7 +1,8 @@
+import asyncio
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-import uvicorn
 
 from config import FASTAPI_HOST, FASTAPI_PORT
 from fastapi_server.auth import router as auth_router
@@ -29,6 +30,13 @@ app.include_router(video_router, tags=["Video"])
 async def redirect():
     return RedirectResponse("/docs")
 
+
+async def main():
+    await adapter.initialize_tables()
+    config = uvicorn.Config(app=app, host=FASTAPI_HOST, port=int(FASTAPI_PORT))
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
 if __name__ == "__main__":
-    adapter.initialize_tables()
-    uvicorn.run(app=app, host=FASTAPI_HOST, port=int(FASTAPI_PORT))
+    asyncio.run(main())

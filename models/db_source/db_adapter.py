@@ -1,5 +1,6 @@
 from typing import Any, List
 
+from sqlalchemy import update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.future import select
@@ -16,14 +17,12 @@ class AsyncDatabaseAdapter:
             bind=self.engine, class_=AsyncSession, expire_on_commit=False
         )
 
+    async def initialize_tables(self) -> None:
+        async with self.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
     async def connect(self) -> None:
-        try:
-            async with self.engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-            print("Соединение с базой данных установлено и таблицы инициализированы.")
-        except SQLAlchemyError as e:
-            print(f"Ошибка подключения к базе данных: {e}")
-            raise
+        await self.initialize_tables()
 
     async def get_all(self, model) -> List[Any]:
         async with self.SessionLocal() as session:
@@ -40,6 +39,14 @@ class AsyncDatabaseAdapter:
             result = await session.execute(
                 select(model).where(getattr(model, parameter) == parameter_value)
             )
+            return result.scalars().all()
+
+    async def get_by_values(self, model, conditions: dict) -> List[Any]:
+        async with self.SessionLocal() as session:
+            query = select(model)
+            for key, value in conditions.items():
+                query = query.where(getattr(model, key) == value)
+            result = await session.execute(query)
             return result.scalars().all()
 
     async def insert(self, model, insert_dict: dict) -> Any:
@@ -62,9 +69,8 @@ class AsyncDatabaseAdapter:
 
     async def update_by_id(self, model, record_id: int, updates: dict):
         async with self.SessionLocal() as session:
-            await session.execute(
-                model.__table__.update().where(model.id == record_id).values(**updates)
-            )
+            stmt = update(model).where(model.id == record_id).values(**updates)
+            await session.execute(stmt)
             await session.commit()
 
     async def delete(self, model, id: int) -> Any:
@@ -75,12 +81,6 @@ class AsyncDatabaseAdapter:
                 await session.delete(record)
                 await session.commit()
             return record
-
-    async def execute_with_request(self, request) -> List[Any]:
-        async with self.SessionLocal() as session:
-            result = await session.execute(request)
-            await session.commit()
-            return result.fetchall()
 
     async def delete_by_value(self, model, parameter: str, parameter_value: Any) -> List[Any]:
         async with self.SessionLocal() as session:
@@ -93,13 +93,11 @@ class AsyncDatabaseAdapter:
             await session.commit()
             return records
 
-    async def get_by_values(self, model, conditions: dict) -> List[Any]:
+    async def execute_with_request(self, request) -> List[Any]:
         async with self.SessionLocal() as session:
-            query = select(model)
-            for key, value in conditions.items():
-                query = query.where(getattr(model, key) == value)
-            result = await session.execute(query)
-            return result.scalars().all()
+            result = await session.execute(request)
+            await session.commit()
+            return result.fetchall()
 
 
 adapter = AsyncDatabaseAdapter()
