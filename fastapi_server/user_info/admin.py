@@ -1,10 +1,10 @@
 from typing import Annotated
 
-from dependencies import check_user
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 
+from dependencies import check_user
 from models.schemas.auth_schemas import UserResponse
 from models.tables.db_tables import User
 

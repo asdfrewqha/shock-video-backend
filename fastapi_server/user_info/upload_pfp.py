@@ -2,13 +2,13 @@ import os
 import tempfile
 from typing import Annotated
 
-from dependencies import check_user
+from PIL import Image
 from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import JSONResponse
-from PIL import Image
 from supabase import create_client
 
 from config import SUPABASE_API, SUPABASE_URL
+from dependencies import check_user
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User
 

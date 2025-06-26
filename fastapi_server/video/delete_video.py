@@ -5,12 +5,12 @@ from typing import Annotated, Optional, Tuple
 from urllib.parse import urlparse
 from uuid import UUID
 
-from dependencies import check_user
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse, Response
 from supabase import create_client
 
 from config import SUPABASE_API, SUPABASE_URL
+from dependencies import check_user
 from models.db_source.db_adapter import adapter
 from models.schemas.auth_schemas import VideoRequest
 from models.tables.db_tables import User, Video
@@ -41,6 +41,7 @@ def extract_uuid_from_url(url: str) -> Optional[Tuple[str, int]]:
         return uuid_obj
     except ValueError:
         return None
+
 
 @router.delete("/delete-video", status_code=204)
 async def delete_video(

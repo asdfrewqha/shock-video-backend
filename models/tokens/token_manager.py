@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 
 from config import RANDOM_SECRET
 
