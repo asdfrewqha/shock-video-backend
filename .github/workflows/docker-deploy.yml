@@ -1,4 +1,4 @@
-name: Build and Deploy with Docker Compose
+name: Build and Deploy via Docker Hub
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: |
+          message: | 
             Deploy starting:
             Repo: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
@@ -57,9 +57,11 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: docker-compose.yml,nginx.conf
+          port: 2084
+          source:
+            - docker-compose.yml
+            - nginx.conf
           target: /root/fastapi/
-
 
       - name: Deploy on server via SSH
         uses: appleboy/ssh-action@v0.1.0
@@ -72,14 +74,14 @@ jobs:
             set -e
             cd /root/fastapi
 
+            echo "Stopping old containers if exist..."
+            docker compose down || true
+
             echo "Pulling latest image..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
 
-            echo "Stopping old containers if exist..."
-            docker-compose down || true
-
-            echo "Starting containers with docker-compose..."
-            docker-compose up -d --build
+            echo "Starting containers..."
+            docker compose up -d --build --remove-orphans
 
             echo "Deployment finished successfully."
 
