@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.post("/view-video")
-def view_video(video: VideoRequest):
+async def view_video(video: VideoRequest):
     if video.uuid:
         id = video.uuid
     elif video.url:
