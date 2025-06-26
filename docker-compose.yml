@@ -1,12 +1,13 @@
-version: '3.8'
-
 services:
-  fastapi-app:
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: video-backend
     ports:
-      - "8000:8000"  # Пробрасываем порт 8000
+      - "8080:8080"
     volumes:
-      - .:/app  # Монтируем текущую директорию в контейнер
-      - ./database.db:/app/database.db
+      - /root/fastapi/.env:/app/.env:ro   # примонтировать файл .env внутрь контейнера (только для чтения)
+    env_file:
+      - /app/.env
+    command: uvicorn main:app --host 0.0.0.0 --port 8080
