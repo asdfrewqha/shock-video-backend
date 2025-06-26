@@ -1,17 +1,22 @@
 name: Build and Deploy via Docker Hub
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - master
 
 jobs:
   build-and-deploy:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -25,19 +30,57 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
+          cache-to: type=inline
 
       - name: Deploy on server via SSH
-        uses: appleboy/ssh-action@v0.1.8
+        uses: appleboy/ssh-action@v0.1.9
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -e
+            echo "Stopping and removing old container if exists..."
             docker stop fastapi-container || true
             docker rm fastapi-container || true
+
+            echo "Pulling latest image..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
+
+            echo "Starting new container..."
             docker run -d \
               --name fastapi-container \
               --env-file ~/fastapi/.env \
               -p 8000:8000 \
+              --restart unless-stopped \
               ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
+
+            echo "Deployment finished successfully."
+
+      - name: Send Telegram notification
+        if: success()
+        uses: appleboy/telegram-action@v0.6.0
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            Deployment finished successfully
+            Repo: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Merge author: ${{ github.event.pull_request.merged_by.login }}
+            url: ${{ github.event.pull_request.html_url }}
+
+      - name: Send Telegram notification (failure)
+        if: failure()
+        uses: appleboy/telegram-action@v0.6.0
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            Deployment failure
+            Repo: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Merge author: ${{ github.event.pull_request.merged_by.login }}
+            url: ${{ github.event.pull_request.html_url }}
+            check workflow logs.

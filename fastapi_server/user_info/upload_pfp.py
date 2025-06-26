@@ -1,21 +1,19 @@
 import os
 import tempfile
-from uuid import UUID
+from typing import Annotated
 
-from fastapi import APIRouter, File, Security, UploadFile
+from dependencies import check_user
+from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer
 from PIL import Image
 from supabase import create_client
 
 from config import SUPABASE_API, SUPABASE_URL
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User
-from models.tokens.token_manager import TokenManager
 
 
 router = APIRouter()
-Bear = HTTPBearer(auto_error=False)
 
 supabase = create_client(SUPABASE_URL, SUPABASE_API)
 bucket = supabase.storage.from_("pfps")
@@ -33,30 +31,20 @@ def center_crop(image: Image.Image) -> Image.Image:
 
 @router.post("/profile-picture")
 async def upld_pfp(
-        auth_token: str = Security(Bear),
+        user: Annotated[User, Depends(check_user)],
         file: UploadFile = File(...)):
-    if not auth_token or not auth_token.credentials:
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-    data = TokenManager.decode_token(auth_token.credentials)
-    if "error" in data or data["type"] != "access":
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-    user_db = adapter.get_by_id(User, UUID(data["sub"]))
-    if not user_db:
+    if not user:
         return JSONResponse(
             {"message": "Invalid token", "status": "error"}, status_code=401
         )
-    if user_db.avatar_url:
+    if user.avatar_url:
         return JSONResponse(
             content={
                 "message": "You have an avatar. If you want to change it - use other methods"
             },
             status_code=409,
         )
-    filename = f"{user_db.username}/avatar_{user_db.id}.png"
+    filename = f"{user.username}/avatar_{user.id}.png"
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
         tmp_path = tmp.name
     try:
@@ -70,7 +58,7 @@ async def upld_pfp(
                 path=filename, file=f, file_options={
                     "content-type": "image/png"})
         public_url = bucket.get_public_url(filename)
-        adapter.update_by_id(User, user_db.id, {"avatar_url": public_url})
+        adapter.update_by_id(User, user.id, {"avatar_url": public_url})
         return JSONResponse(
             {"message": "Profile picture uploaded", "url": public_url}, status_code=201
         )
@@ -81,23 +69,13 @@ async def upld_pfp(
 
 @router.put("/profile-picture")
 async def updt_pfp(
-        auth_token: str = Security(Bear),
+        user: Annotated[User, Depends(check_user)],
         file: UploadFile = File(...)):
-    if not auth_token or not auth_token.credentials:
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-    data = TokenManager.decode_token(auth_token.credentials)
-    if "error" in data or data["type"] != "access":
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-    user_db = adapter.get_by_id(User, UUID(data["sub"]))
-    if not user_db:
+    if not user:
         return JSONResponse(
             {"message": "Invalid token", "status": "error"}, status_code=401
         )
-    filename = f"{user_db.username}/avatar_{user_db.id}.png"
+    filename = f"{user.username}/avatar_{user.id}.png"
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
         tmp_path = tmp.name
     try:
@@ -112,7 +90,7 @@ async def updt_pfp(
                 path=filename, file=f, file_options={
                     "content-type": "image/png"})
         public_url = bucket.get_public_url(filename)
-        adapter.update_by_id(User, user_db.id, {"avatar_url": public_url})
+        adapter.update_by_id(User, user.id, {"avatar_url": public_url})
         return JSONResponse(
             {"message": "Profile picture updated", "url": public_url}, status_code=200
         )
@@ -121,28 +99,18 @@ async def updt_pfp(
             os.remove(tmp_path)
 
 
-@router.delete("/profile-picture")
-async def del_pfp(auth_token: str = Security(Bear)):
-    if not auth_token or not auth_token.credentials:
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-    data = TokenManager.decode_token(auth_token.credentials)
-    if "error" in data or data["type"] != "access":
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-    user_db = adapter.get_by_id(User, UUID(data["sub"]))
-    if not user_db:
+@router.delete("/profile-picture", status_code=204)
+async def del_pfp(user: Annotated[User, Depends(check_user)]):
+    if not user:
         return JSONResponse(
             {"message": "Invalid token", "status": "error"}, status_code=401
         )
-    if not user_db.avatar_url:
+    if not user.avatar_url:
         return JSONResponse(
-            {"message": "You already have deleted your avatar"}, status_code=404
+            {"message": "You don't have any avatars"}, status_code=404
         )
-    filename = f"{user_db.username}/avatar_{user_db.id}.png"
+    filename = f"{user.username}/avatar_{user.id}.png"
     bucket.remove(paths=[filename])
-    adapter.update_by_id(User, user_db.id, {"avatar_url": None})
+    adapter.update_by_id(User, user.id, {"avatar_url": None})
     return JSONResponse(
         {"message": "Profile picture deleted"}, status_code=204)

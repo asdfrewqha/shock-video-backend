@@ -1,32 +1,24 @@
-from uuid import UUID
+from typing import Annotated
 
-from fastapi import APIRouter, Security
+from dependencies import check_user
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer
 
 from fastapi_server.video.delete_video import extract_uuid_from_url
 from models.db_source.db_adapter import adapter
 from models.schemas.auth_schemas import VideoRequest
 from models.tables.db_tables import Like, User, Video
-from models.tokens.token_manager import TokenManager
 
 
 router = APIRouter()
-Bear = HTTPBearer(auto_error=False)
 
 
 @router.post("/like-video")
 async def like_video(
     video: VideoRequest,
+    user: Annotated[User, Depends(check_user)],
     like: bool = True,
-    access_token: str = Security(Bear),
 ):
-    if not access_token or not access_token.credentials:
-        return JSONResponse(
-            {"message": "Unauthorized", "status": "error"}, status_code=401
-        )
-    data = TokenManager.decode_token(access_token.credentials)
-
     if video.uuid:
         video_id = video.uuid
     elif video.url:
@@ -47,34 +39,22 @@ async def like_video(
             },
             status_code=400,
         )
-
-    if "error" in data or data.get("type") != "access":
-        return JSONResponse(
-            content={
-                "message": "Invalid token",
-                "status": "error"},
-            status_code=401)
-
-    user = adapter.get_by_id(User, UUID(data["sub"]))
     if not user:
         return JSONResponse(
             content={
                 "message": "Invalid user",
                 "status": "error"},
             status_code=401)
-    user_id = data["sub"]
-
-    video = adapter.get_by_value(Video, "id", video_id)
+    video = adapter.get_by_id(Video, video_id)
     if not video:
         return JSONResponse(
             content={
                 "message": "Video not found",
                 "status": "error"},
             status_code=404)
-    video_db = video[0]
 
     existing_like = adapter.get_by_values(
-        Like, {"user_id": user_id, "video_id": video_id}
+        Like, {"user_id": user.id, "video_id": video_id}
     )
 
     if existing_like:
@@ -82,15 +62,15 @@ async def like_video(
         adapter.delete(Like, prev_like.id)
 
         if prev_like.like:
-            video_db.likes = max(video_db.likes - 1, 0)
+            video.likes = max(video.likes - 1, 0)
         else:
-            video_db.dislikes = max(video_db.dislikes - 1, 0)
+            video.dislikes = max(video.dislikes - 1, 0)
 
         if prev_like.like == like:
             adapter.update(
                 Video,
-                {"likes": video_db.likes, "dislikes": video_db.dislikes},
-                video_id,
+                {"likes": video.likes, "dislikes": video.dislikes},
+                video_id
             )
             return JSONResponse(
                 content={
@@ -99,16 +79,17 @@ async def like_video(
             )
 
     adapter.insert(Like,
-                   {"user_id": user_id,
+                   {"user_id": user.id,
                     "video_id": video_id,
                     "like": like})
-    if like:
-        video_db.likes += 1
-    else:
-        video_db.dislikes += 1
 
-    adapter.update(Video, {"likes": video_db.likes,
-                           "dislikes": video_db.dislikes}, video_id)
+    if like:
+        video.likes += 1
+    else:
+        video.dislikes += 1
+
+    adapter.update(Video, {"likes": video.likes,
+                           "dislikes": video.dislikes}, video_id)
     return JSONResponse(
         content={
             "message": f"Video {'liked' if like else 'disliked'} successfully"})
