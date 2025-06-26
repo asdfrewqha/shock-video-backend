@@ -1,4 +1,5 @@
 from random import choice
+import logging
 
 from fastapi import APIRouter, Security
 from fastapi.security import HTTPBearer
@@ -12,10 +13,14 @@ router = APIRouter()
 
 Bear = HTTPBearer(auto_error=False)
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @router.get("/get-video", response_model=VideoResponse)
 async def get_video(access_token: str = Security(Bear)):
+    logger.info("Fetching all videos from DB...")
     videos_db = adapter.get_all(Video)
+    logger.info(f"Fetched {len(videos_db)} videos")
     random_video = choice(videos_db)
     return VideoResponse(
         id=random_video.id,
