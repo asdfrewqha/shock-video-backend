@@ -76,7 +76,7 @@ jobs:
             docker container rm -f fastapi-container || true
 
             echo "Pulling latest image..."
-            docker pull your_dockerhub_username/shock-fastapi-backend:latest
+            docker pull asdfrewqha/shock-fastapi-backend:latest
 
             echo "Starting containers..."
             docker compose up -d --build --remove-orphans
