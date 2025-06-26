@@ -85,7 +85,7 @@ jobs:
             Deployment finished successfully:
             Repo: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
-            Merge author: ${{ github.actor }}
+            Author: ${{ github.actor }}
 
       - name: Telegram notification (fail)
         if: failure()
