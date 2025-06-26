@@ -1,9 +1,9 @@
 from typing import Annotated
 
-from dependencies import check_refresh
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from dependencies import check_refresh
 from models.tables.db_tables import User
 from models.tokens.token_manager import TokenManager
 

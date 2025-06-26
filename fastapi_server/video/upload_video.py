@@ -7,7 +7,6 @@ import time
 from typing import Annotated
 
 import cv2
-from dependencies import check_user
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 from moviepy.editor import VideoFileClip
@@ -15,6 +14,7 @@ from supabase import create_client
 from uuid_v7.base import uuid7
 
 from config import SUPABASE_API, SUPABASE_URL
+from dependencies import check_user
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User, Video
 
@@ -182,7 +182,7 @@ async def upload_video(
 
         size = os.path.getsize(input_path)
         logger.info(
-            f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user.username}" # noqa
+            f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user.username}"  # noqa
         )
 
         if mime_type.startswith("video/"):

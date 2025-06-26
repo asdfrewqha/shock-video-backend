@@ -1,9 +1,9 @@
 from typing import Annotated
 
-from dependencies import check_user
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from dependencies import check_user
 from fastapi_server.video.delete_video import extract_uuid_from_url
 from models.db_source.db_adapter import adapter
 from models.schemas.auth_schemas import VideoRequest
