@@ -76,7 +76,7 @@ jobs:
             docker compose down || true
 
             echo "Pulling latest image..."
-            docker pull ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
+            docker pull asdfrewqha/shock-fastapi-backend:latest
 
             echo "Starting containers..."
             docker compose up -d --build --remove-orphans
