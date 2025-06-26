@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from config import FASTAPI_HOST, FASTAPI_PORT
@@ -7,14 +8,19 @@ from fastapi_server.user_info import router as user_info_router
 from fastapi_server.video import router as video_router
 from models.db_source.db_adapter import adapter
 
-
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth_router, tags=["Auth"])
 app.include_router(user_info_router, tags=["User info"])
 app.include_router(video_router, tags=["Video"])
-
 
 if __name__ == "__main__":
     adapter.initialize_tables()
