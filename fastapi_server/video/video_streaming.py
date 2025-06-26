@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.get("/stream-video/{uuid}")
-def stream_by_uuid_sync(uuid: str, request: Request):
+async def stream_by_uuid_sync(uuid: str, request: Request):
     video = await adapter.get_by_id(Video, uuid)
     if not video or not video.url:
         return JSONResponse(status_code=404, content={"detail": "Video not found"})
