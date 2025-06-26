@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Telegram notification (start)
-        uses: appleboy/telegram-action@v0.1.0
+        uses: appleboy/telegram-action@v0.6.0
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -30,6 +30,7 @@ jobs:
             Repo: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
             Author: ${{ github.actor }}
+
       - name: Checkout code
         uses: actions/checkout@v3
         with:
@@ -58,9 +59,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            echo "Stopping and removing old container if exists..."
-            docker stop fastapi-container || true
-            docker rm fastapi-container || true
+            echo "Stopping old container if exists..."
+            docker container inspect fastapi-container > /dev/null 2>&1 && docker stop fastapi-container || true
+            docker container inspect fastapi-container > /dev/null 2>&1 && docker rm fastapi-container || true
 
             echo "Pulling latest image..."
             docker pull ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
@@ -69,7 +70,7 @@ jobs:
             docker run -d \
               --name fastapi-container \
               --env-file ~/fastapi/.env \
-              -p 8080:8080 \
+              -p 127.0.0.1:8080:8080 \
               --restart unless-stopped \
               ${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
 
@@ -77,7 +78,7 @@ jobs:
 
       - name: Telegram notification (success)
         if: success()
-        uses: appleboy/telegram-action@v0.1.0
+        uses: appleboy/telegram-action@v0.6.0
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -89,7 +90,7 @@ jobs:
 
       - name: Telegram notification (fail)
         if: failure()
-        uses: appleboy/telegram-action@v0.1.0
+        uses: appleboy/telegram-action@v0.6.0
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -98,4 +99,4 @@ jobs:
             Repo: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
             Author: ${{ github.actor }}
-            check workflow logs.
+            Check workflow logs.
