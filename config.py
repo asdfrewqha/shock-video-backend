@@ -8,7 +8,8 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-USER = os.getenv("USER")
+PGR_USER = os.getenv("PGR_USER")
+USER = os.getenv("USER", PGR_USER)
 PASSWORD = os.getenv("PASSWORD")
 HOST = os.getenv("HOST")
 PORT = os.getenv("PORT")
