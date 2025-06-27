@@ -69,7 +69,7 @@ async def upld_pfp(
         )
 
     filename = f"{user.username}/avatar_{user.id}.png"
-
+    logger.info("Uploading pfp")
     try:
         img = Image.open(file.file).convert("RGBA")
         img = center_crop(img)
