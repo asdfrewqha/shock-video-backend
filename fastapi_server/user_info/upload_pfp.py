@@ -15,6 +15,8 @@ from models.tables.db_tables import User
 
 
 router = APIRouter()
+
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 supabase = create_client(SUPABASE_URL, SUPABASE_API)
@@ -33,6 +35,7 @@ def center_crop(image: Image.Image) -> Image.Image:
 
 async def supabase_upload_async(filepath: str, image_bytes: bytes):
     loop = asyncio.get_running_loop()
+
     def upload():
         bucket.upload(
             path=filepath,
@@ -45,6 +48,7 @@ async def supabase_upload_async(filepath: str, image_bytes: bytes):
 
 async def supabase_remove_async(filepath: str):
     loop = asyncio.get_running_loop()
+
     def remove():
         return bucket.remove(paths=[filepath])
     return await loop.run_in_executor(None, remove)
@@ -77,7 +81,6 @@ async def upld_pfp(
 
         public_url = await supabase_upload_async(filename, image_bytes)
 
-        # Используй await если адаптер асинхронный
         await adapter.update_by_id(User, user.id, {"avatar_url": public_url})
 
         return JSONResponse({"message": "Profile picture uploaded", "url": public_url}, status_code=201)
@@ -96,7 +99,7 @@ async def updt_pfp(
         return JSONResponse({"message": "Invalid token", "status": "error"}, status_code=401)
 
     filename = f"{user.username}/avatar_{user.id}.png"
-
+    logger.info("Uploading pfp")
     try:
         img = Image.open(file.file).convert("RGBA")
         img = center_crop(img)
@@ -106,7 +109,6 @@ async def updt_pfp(
             img.save(output, format="PNG")
             image_bytes = output.getvalue()
 
-        # Удаляем старый аватар (если есть) без ошибок
         try:
             await supabase_remove_async(filename)
         except Exception as e:
