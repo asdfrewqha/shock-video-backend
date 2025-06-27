@@ -1,8 +1,10 @@
+from uuid import uuid4
 from typing import Any, List
 
 from sqlalchemy import update
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.pool import NullPool
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 
@@ -12,8 +14,18 @@ from models.tables.db_tables import Base
 
 class AsyncDatabaseAdapter:
     def __init__(self, database_url: str = DATABASE_URL) -> None:
-        self.engine = create_async_engine(database_url, echo=False, future=True)
-        self.SessionLocal = sessionmaker(
+        self.engine = create_async_engine(
+            database_url,
+            poolclass=NullPool,
+            echo=False,
+            future=True,
+            connect_args={
+                "prepared_statement_name_func": lambda:  f"__asyncpg_{uuid4()}__",
+                "statement_cache_size": 0,
+                "prepared_statement_cache_size": 0,
+            },
+    )
+        self.SessionLocal = async_sessionmaker(
             bind=self.engine, class_=AsyncSession, expire_on_commit=False
         )
 
