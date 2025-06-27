@@ -49,7 +49,7 @@ class Video(Base):
     __tablename__ = "videos"
 
     id = Column(Uuid, primary_key=True, unique=True)
-    author_id = Column(Integer, nullable=False)
+    author_id = Column(Uuid, nullable=False)
     url = Column(String, unique=True, nullable=False)
     views = Column(Integer, default=0)
     likes = Column(Integer, default=0)
