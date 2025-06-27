@@ -1,7 +1,10 @@
 import os
+import logging
 
 from dotenv import load_dotenv
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -20,3 +23,5 @@ UUID_SHA = os.getenv("UUID_SHA")
 DATABASE_URL = (
     f"postgresql+asyncpg://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
 )
+
+logging.info(DATABASE_URL)
