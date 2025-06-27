@@ -1,22 +1,20 @@
 from uuid import uuid4
 from typing import Any, List
+import logging
 
 from sqlalchemy import update
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.future import select
-from sqlalchemy.orm import sessionmaker
-
 from config import DATABASE_URL
 from models.tables.db_tables import Base
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class AsyncDatabaseAdapter:
     def __init__(self, database_url: str = DATABASE_URL) -> None:
         self.engine = create_async_engine(
             database_url,
-            poolclass=NullPool,
             echo=False,
             future=True,
             connect_args={
@@ -30,11 +28,9 @@ class AsyncDatabaseAdapter:
         )
 
     async def initialize_tables(self) -> None:
+        logger.info("Tables are created or exists")
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-
-    async def connect(self) -> None:
-        await self.initialize_tables()
 
     async def get_all(self, model) -> List[Any]:
         async with self.SessionLocal() as session:

@@ -1,5 +1,5 @@
-import asyncio
 import uvicorn
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -11,7 +11,13 @@ from fastapi_server.video import router as video_router
 from models.db_source.db_adapter import adapter
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await adapter.initialize_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,12 +37,6 @@ async def redirect():
     return RedirectResponse("/docs")
 
 
-async def main():
-    await adapter.initialize_tables()
-    config = uvicorn.Config(app=app, host=FASTAPI_HOST, port=int(FASTAPI_PORT))
-    server = uvicorn.Server(config)
-    await server.serve()
-
-
 if __name__ == "__main__":
-    asyncio.run(main())
+
+    uvicorn.run("main:app", host=FASTAPI_HOST, port=int(FASTAPI_PORT), reload=False)
