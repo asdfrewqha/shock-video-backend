@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from dependencies import check_user
 from fastapi_server.video.delete_video import extract_uuid_from_url
 from models.db_source.db_adapter import adapter
-from models.schemas.auth_schemas import VideoRequest
+from models.schemas.auth_schemas import VideoModel
 from models.tables.db_tables import Like, User, Video
 
 
@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/like-video")
 async def like_video(
-    video: VideoRequest,
+    video: VideoModel,
     user: Annotated[User, Depends(check_user)],
     like: bool = Query(True)
 ):

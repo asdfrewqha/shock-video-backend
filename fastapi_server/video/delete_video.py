@@ -12,7 +12,7 @@ from supabase import create_client
 from config import SUPABASE_API, SUPABASE_URL
 from dependencies import check_user
 from models.db_source.db_adapter import adapter
-from models.schemas.auth_schemas import VideoRequest
+from models.schemas.auth_schemas import VideoModel
 from models.tables.db_tables import User, Video
 
 
@@ -45,7 +45,7 @@ def extract_uuid_from_url(url: str) -> Optional[Tuple[str, int]]:
 
 @router.delete("/delete-video", status_code=204)
 async def delete_video(
-        video: VideoRequest,
+        video: VideoModel,
         user: Annotated[User, Depends(check_user)]):
     if video.uuid:
         id = video.uuid

@@ -47,6 +47,6 @@ class VideoResponse(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-class VideoRequest(BaseModel):
+class VideoModel(BaseModel):
     url: Optional[str] = ""
     uuid: Optional[str] = ""

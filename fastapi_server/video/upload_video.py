@@ -18,6 +18,7 @@ from config import SUPABASE_API, SUPABASE_URL
 from dependencies import check_user
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User, Video
+from models.schemas.auth_schemas import VideoModel
 
 
 mimetypes.add_type("image/webp", ".webp")
@@ -114,7 +115,7 @@ def gen_blur_sync(input_path, target_resolution=(1080, 1920)):
             processed.close()
 
 
-@router.post("/upload-video/")
+@router.post("/upload-video/", response_model=VideoModel)
 async def upload_video(
     user: Annotated[User, Depends(check_user)],
     file: UploadFile = File(...),
@@ -195,7 +196,7 @@ async def upload_video(
                 "description": description,
             },
         )
-        return JSONResponse({"message": "success", "url": public_url}, status_code=201)
+        return VideoModel(url=public_url, uuid=str(random_uuid))
 
     finally:
         for path in [input_path, output_path, inputp]:
