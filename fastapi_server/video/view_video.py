@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 from fastapi_server.video.delete_video import extract_uuid_from_url
 from models.db_source.db_adapter import adapter
-from models.schemas.auth_schemas import Video
+from models.schemas.auth_schemas import VideoModel
 from models.tables.db_tables import VideoModel
 
 
