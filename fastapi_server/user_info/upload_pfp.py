@@ -1,5 +1,7 @@
 import asyncio
 import io
+import tempfile
+import os
 import logging
 from typing import Annotated
 
@@ -37,13 +39,19 @@ async def supabase_upload_async(filepath: str, image_bytes: bytes):
     loop = asyncio.get_running_loop()
 
     def upload():
-        with io.BytesIO(image_bytes) as file_obj:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+            tmp.write(image_bytes)
+            tmp_path = tmp.name
+
+        try:
             bucket.upload(
                 path=filepath,
-                file=file_obj,
+                file=tmp_path,
                 file_options={"content-type": "image/png"},
             )
-        return bucket.get_public_url(filepath)
+            return bucket.get_public_url(filepath)
+        finally:
+            os.remove(tmp_path)
 
     return await loop.run_in_executor(None, upload)
 
@@ -80,7 +88,6 @@ async def upld_pfp(
         with io.BytesIO() as output:
             img.save(output, format="PNG")
             image_bytes = output.getvalue()
-        logger.info(f"Image Bytes Type: {type(image_bytes)}")  
         public_url = await supabase_upload_async(filename, image_bytes)
 
         await adapter.update_by_id(User, user.id, {"avatar_url": public_url})
