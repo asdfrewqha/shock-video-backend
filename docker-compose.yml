@@ -42,7 +42,7 @@ services:
       - "443:443"
     volumes:
       - /root/fastapi/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - /root/fastapi/ssl:/etc/nginx/ssl:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - fastapi
     restart: unless-stopped
