@@ -38,5 +38,4 @@ async def redirect():
 
 
 if __name__ == "__main__":
-
     uvicorn.run("main:app", host=FASTAPI_HOST, port=int(FASTAPI_PORT), reload=False)
