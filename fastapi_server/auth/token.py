@@ -18,10 +18,10 @@ async def token(user: UserLogin):
     bd_user = await adapter.get_by_value(User, "username", user.username)
 
     if bd_user == []:
-            return JSONResponse(
-                content={"message": "Invalid credentials", "status": "error"},
-                status_code=401,
-            )
+        return JSONResponse(
+            content={"message": "Invalid credentials", "status": "error"},
+            status_code=401,
+        )
 
     bd_user = bd_user[0]
 
