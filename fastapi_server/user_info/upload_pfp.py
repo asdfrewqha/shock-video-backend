@@ -35,13 +35,14 @@ def center_crop(image: Image.Image) -> Image.Image:
 
 async def supabase_upload_async(filepath: str, image_bytes: bytes):
     loop = asyncio.get_running_loop()
-    logger.info(f"Image Bytes Type: {type(image_bytes)}")  
+
     def upload():
-        bucket.upload(
-            path=filepath,
-            file=image_bytes,
-            file_options={"content-type": "image/png"},
-        )
+        with io.BytesIO(image_bytes) as file_obj:
+            bucket.upload(
+                path=filepath,
+                file=file_obj,
+                file_options={"content-type": "image/png"},
+            )
         return bucket.get_public_url(filepath)
 
     return await loop.run_in_executor(None, upload)
@@ -79,7 +80,7 @@ async def upld_pfp(
         with io.BytesIO() as output:
             img.save(output, format="PNG")
             image_bytes = output.getvalue()
-
+        logger.info(f"Image Bytes Type: {type(image_bytes)}")  
         public_url = await supabase_upload_async(filename, image_bytes)
 
         await adapter.update_by_id(User, user.id, {"avatar_url": public_url})
