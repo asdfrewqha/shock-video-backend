@@ -5,7 +5,7 @@ from typing import Annotated
 
 from PIL import Image
 from fastapi import APIRouter, Depends, File, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from supabase import create_client
 
 from config import SUPABASE_API, SUPABASE_URL
@@ -37,11 +37,9 @@ async def supabase_upload_async(filepath: str, image_bytes: bytes):
     loop = asyncio.get_running_loop()
     logger.info(f"Image Bytes Type: {type(image_bytes)}")  
     def upload():
-        image_io = io.BytesIO(image_bytes)
-        image_io.seek(0) 
         bucket.upload(
             path=filepath,
-            file=image_io,
+            file=image_bytes,
             file_options={"content-type": "image/png"},
         )
         return bucket.get_public_url(filepath)
@@ -145,4 +143,4 @@ async def del_pfp(user: Annotated[User, Depends(check_user)]):
         logger.error(f"Error deleting profile picture: {e}")
         return JSONResponse({"message": "Delete failed"}, status_code=500)
 
-    return JSONResponse(status_code=204)
+    return Response(status_code=204)
