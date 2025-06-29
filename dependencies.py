@@ -64,3 +64,4 @@ async def check_refresh(refresh_token: str = Security(Bear)):
 
     logger.error("No user for this token")
     return False
+
