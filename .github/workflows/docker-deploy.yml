@@ -19,7 +19,7 @@ jobs:
       - name: Telegram notification (start)
         run: |
           BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}"
-          USER_IDS="${{ secrets.TELEGRAM_USER_IDS }}"
+          USER_IDS="${{ secrets.TELEGRAM_CHAT_ID }}"
           MESSAGE="Deploy starting:\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nAuthor: ${{ github.actor }}"
 
           for USER_ID in $USER_IDS; do
@@ -80,7 +80,7 @@ jobs:
         if: success()
         run: |
           BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}"
-          USER_IDS="${{ secrets.TELEGRAM_USER_IDS }}"
+          USER_IDS="${{ secrets.TELEGRAM_CHAT_ID }}"
           MESSAGE="Deployment finished successfully:\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nAuthor: ${{ github.actor }}"
 
           for USER_ID in $USER_IDS; do
@@ -93,7 +93,7 @@ jobs:
         if: failure()
         run: |
           BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}"
-          USER_IDS="${{ secrets.TELEGRAM_USER_IDS }}"
+          USER_IDS="${{ secrets.TELEGRAM_CHAT_ID }}"
           MESSAGE="Deployment failure:\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nAuthor: ${{ github.actor }}\nCheck workflow logs."
 
           for USER_ID in $USER_IDS; do
