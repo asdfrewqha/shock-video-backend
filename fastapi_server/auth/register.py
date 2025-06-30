@@ -6,14 +6,15 @@ from config import UUID_SHA
 from dependencies import badresponse
 from models.db_source.db_adapter import adapter
 from models.hashing.passlib_hasher import Hasher
-from models.schemas.auth_schemas import UserCreate, UserResponse
+from models.schemas.auth_schemas import UserCreate, UserRegResponse
 from models.tables.db_tables import User
+from models.tokens.token_manager import TokenManager
 
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserRegResponse, status_code=status.HTTP_201_CREATED)
 async def register(user: UserCreate):
     user_check = await adapter.get_by_value(User, "username", user.username)
 
@@ -30,9 +31,22 @@ async def register(user: UserCreate):
 
     await adapter.insert(User, new_user)
 
-    new_user_db = await adapter.get_by_value(User, "username", user.username)
-    user_instance = new_user_db[0]
+    new_user_db = await adapter.get_by_id(User, new_id)
 
-    return UserResponse(
-        id=user_instance.id, username=user_instance.username, role=user_instance.role
+    access_token = TokenManager.create_token(
+        {"sub": str(new_user_db.id), "type": "access"},
+        TokenManager.ACCESS_TOKEN_EXPIRE_MINUTES,
+    )
+
+    refresh_token = TokenManager.create_token(
+        {"sub": str(new_user_db.id), "type": "refresh"},
+        TokenManager.REFRESH_TOKEN_EXPIRE_MINUTES,
+    )
+
+    return UserRegResponse(
+        id=new_user_db.id,
+        username=new_user_db.username,
+        role=new_user_db.role,
+        access_token=access_token,
+        refresh_token=refresh_token,
     )
