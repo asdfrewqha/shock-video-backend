@@ -42,7 +42,7 @@ async def like_video(
                 uuid,
                 {"likes": video.likes, "dislikes": video.dislikes}
             )
-            return okresp(message=f"{"liked" if like else "disliked"}")
+            return okresp(message=f"{'liked' if like else 'disliked'}")
 
     await adapter.insert(Like,
                          {"user_id": user.id,
@@ -57,4 +57,4 @@ async def like_video(
     await adapter.update_by_id(Video, uuid, {"likes": video.likes,
                                  "dislikes": video.dislikes})
 
-    return okresp(message=f"{"liked" if like else "disliked"}")
+    return okresp(message=f"{'liked' if like else 'disliked'}")
