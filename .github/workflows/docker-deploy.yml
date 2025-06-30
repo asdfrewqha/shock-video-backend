@@ -17,15 +17,25 @@ jobs:
 
     steps:
       - name: Telegram notification (start)
-        uses: appleboy/telegram-action@v0.1.0
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: | 
-            Deploy starting:
-            Repo: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Author: ${{ github.actor }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          AUTHOR: ${{ github.actor }}
+        run: |
+          MESSAGE=$(cat <<EOF
+Deploy starting:
+Repo: $REPO
+Branch: $BRANCH
+Author: $AUTHOR
+EOF
+          )
+          for ID in $TELEGRAM_CHAT_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+              -d chat_id="$ID" \
+              -d text="$MESSAGE"
+          done
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -80,28 +90,47 @@ jobs:
 
             echo "Deployment finished successfully."
 
-
       - name: Telegram notification (success)
         if: success()
-        uses: appleboy/telegram-action@v0.1.0
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: |
-            Deployment finished successfully:
-            Repo: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Author: ${{ github.actor }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          AUTHOR: ${{ github.actor }}
+        run: |
+          MESSAGE=$(cat <<EOF
+Deployment finished successfully:
+Repo: $REPO
+Branch: $BRANCH
+Author: $AUTHOR
+EOF
+          )
+          for ID in $TELEGRAM_CHAT_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+              -d chat_id="$ID" \
+              -d text="$MESSAGE"
+          done
 
       - name: Telegram notification (fail)
         if: failure()
-        uses: appleboy/telegram-action@v0.1.0
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: |
-            Deployment failure:
-            Repo: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Author: ${{ github.actor }}
-            Check workflow logs.
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          AUTHOR: ${{ github.actor }}
+        run: |
+          MESSAGE=$(cat <<EOF
+Deployment failure:
+Repo: $REPO
+Branch: $BRANCH
+Author: $AUTHOR
+Check workflow logs.
+EOF
+          )
+          for ID in $TELEGRAM_CHAT_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+              -d chat_id="$ID" \
+              -d text="$MESSAGE"
+          done
