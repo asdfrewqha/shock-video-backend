@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
+from dependencies import badresponse
 from models.db_source.db_adapter import adapter
 from models.hashing.passlib_hasher import Hasher
 from models.schemas.auth_schemas import Tokens, UserLogin
@@ -18,18 +19,12 @@ async def token(user: UserLogin):
     bd_user = await adapter.get_by_value(User, "username", user.username)
 
     if bd_user == []:
-        return JSONResponse(
-            content={"message": "Invalid credentials", "status": "error"},
-            status_code=401,
-        )
+        badresponse("Not found", 404)
 
     bd_user = bd_user[0]
 
     if not Hasher.verify_password(user.password, bd_user.hashed_password):
-        return JSONResponse(
-            content={"message": "Invalid credentials", "status": "error"},
-            status_code=401,
-        )
+        return badresponse("Forbidden", 403)
 
     access_token = TokenManager.create_token(
         {"sub": str(bd_user.id), "type": "access"},

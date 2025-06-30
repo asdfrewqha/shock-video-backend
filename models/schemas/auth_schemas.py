@@ -51,3 +51,6 @@ class VideoResponse(BaseModel):
 class VideoModel(BaseModel):
     url: Optional[str] = ""
     uuid: Optional[str] = ""
+
+class UpdateVideoContent(BaseModel):
+    description: str

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 import requests
-import mimetypes
+from dependencies import badresponse
 
 from config import SUPABASE_API
 from models.db_source.db_adapter import adapter
@@ -12,8 +12,8 @@ router = APIRouter()
 @router.get("/get-profile-picture/{uuid}")
 async def profile_picture(uuid: str, request: Request):
     user = await adapter.get_by_id(User, uuid)
-    if not user.avatar_url:
-        return JSONResponse(status_code=404, content={"detail": "Profile pic not found"})
+    if not user or not user.avatar_url:
+        return badresponse("Not found", 404)
 
     headers = {
         "Authorization": f"Bearer {SUPABASE_API}",
@@ -22,7 +22,7 @@ async def profile_picture(uuid: str, request: Request):
     r = requests.get(user.avatar_url, headers=headers, stream=True)
 
     if r.status_code != 200:
-        return JSONResponse(status_code=r.status_code, content={"detail": "Image not accessible"})
+        return badresponse("Image not accessible", r.status_code)
 
     return StreamingResponse(
         r.iter_content(chunk_size=8192),

@@ -1,20 +1,25 @@
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
+from dependencies import check_user, badresponse, okresp
 import requests
 import mimetypes
+from typing import Annotated
 
 from config import SUPABASE_API
 from models.db_source.db_adapter import adapter
-from models.tables.db_tables import Video
+from models.tables.db_tables import Video, User
 
 router = APIRouter()
 
 
 @router.get("/stream-video/{uuid}")
-async def stream_by_uuid(uuid: str, request: Request):
+async def stream_by_uuid(
+    user: Annotated[User, check_user],
+    uuid: str,
+    request: Request):
     media = await adapter.get_by_id(Video, uuid)
     if not media or not media.url:
-        return JSONResponse(status_code=404, content={"detail": "Media not found"})
+        return badresponse("Media not found", 404)
 
     mime_type, _ = mimetypes.guess_type(media.url)
     if not mime_type:
@@ -30,7 +35,11 @@ async def stream_by_uuid(uuid: str, request: Request):
     r = requests.get(media.url, headers=headers, stream=True)
 
     if r.status_code not in (200, 206):
-        return JSONResponse(status_code=r.status_code, content={"detail": "Media not accessible"})
+        return badresponse("Media not accessible", r.status_code)
+    
+    views = media.views + 1
+
+    await adapter.update_by_id(Video, uuid, {"views": views})
 
     response_headers = {
         "Content-Length": r.headers.get("Content-Length", ""),

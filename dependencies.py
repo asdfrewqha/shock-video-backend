@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import Security
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 
 from models.db_source.db_adapter import adapter
@@ -65,3 +66,28 @@ async def check_refresh(refresh_token: str = Security(Bear)):
     logger.error("No user for this token")
     return False
 
+async def badresponse(msg, code: int =400, status: str = "error"):
+    return JSONResponse(
+        content={
+            "msg": msg,
+            "status": status
+                 },
+        status_code=code
+    )
+
+async def okresp(code: int = 200, message: str = None):
+    if not message:
+        return JSONResponse(
+            content={
+                "status": "success"
+            },
+            status_code=code
+        )
+    else:
+        return JSONResponse(
+            content={
+                "message": message,
+                "status": "success"
+            },
+            status_code=code
+        )

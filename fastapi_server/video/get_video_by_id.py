@@ -1,4 +1,5 @@
 from uuid import UUID
+from dependencies import badresponse
 
 from fastapi import APIRouter
 
@@ -13,6 +14,8 @@ router = APIRouter()
 @router.get("/get-video-by-id/{uuid}", response_model=VideoResponse)
 async def get_video_by_id(uuid: UUID):
     video_db = await adapter.get_by_id(Video, uuid)
+    if not video_db:
+        return badresponse("Video not found", 404)
     video_res = VideoResponse(
         id=uuid,
         sup_url=video_db.url,

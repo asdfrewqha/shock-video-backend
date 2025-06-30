@@ -2,9 +2,8 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import JSONResponse
 
-from dependencies import check_user
+from dependencies import check_user, badresponse, okresp
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import Like, User, Video
 
@@ -19,19 +18,10 @@ async def like_video(
     like: bool = Query(True)
 ):
     if not user:
-        return JSONResponse(
-            content={
-                "message": "Invalid user",
-                "status": "error"},
-            status_code=401)
-
+        return badresponse("Unauthorized", 401)
     video = await adapter.get_by_id(Video, uuid)
     if not video:
-        return JSONResponse(
-            content={
-                "message": "Video not found",
-                "status": "error"},
-            status_code=404)
+        return badresponse("Video not found", 404)
 
     existing_like = await adapter.get_by_values(
         Like, {"user_id": user.id, "video_id": uuid}
@@ -47,16 +37,12 @@ async def like_video(
             video.dislikes = max(video.dislikes - 1, 0)
 
         if prev_like.like == like:
-            await adapter.update(
+            await adapter.update_by_id(
                 Video,
-                {"likes": video.likes, "dislikes": video.dislikes},
-                uuid
+                uuid,
+                {"likes": video.likes, "dislikes": video.dislikes}
             )
-            return JSONResponse(
-                content={
-                    "message": f"Video un{'liked' if like else 'disliked'} successfully"
-                }
-            )
+            return okresp(message=f"{"liked" if like else "disliked"}")
 
     await adapter.insert(Like,
                          {"user_id": user.id,
@@ -68,10 +54,7 @@ async def like_video(
     else:
         video.dislikes += 1
 
-    await adapter.update(Video, {"likes": video.likes,
-                                 "dislikes": video.dislikes}, uuid)
+    await adapter.update_by_id(Video, uuid, {"likes": video.likes,
+                                 "dislikes": video.dislikes})
 
-    return JSONResponse(
-        content={
-            "message": f"Video {'liked' if like else 'disliked'} successfully"
-        })
+    return okresp(message=f"{"liked" if like else "disliked"}")
