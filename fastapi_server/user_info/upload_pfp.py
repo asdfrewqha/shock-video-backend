@@ -35,27 +35,6 @@ def center_crop(image: Image.Image) -> Image.Image:
     return image.crop((left, top, right, bottom))
 
 
-async def supabase_upload_async(filepath: str, image_bytes: bytes):
-    loop = asyncio.get_running_loop()
-
-    def upload():
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-            tmp.write(image_bytes)
-            tmp_path = tmp.name
-
-        try:
-            bucket.upload(
-                path=filepath,
-                file=tmp_path,
-                file_options={"content-type": "image/png"},
-            )
-            return bucket.get_public_url(filepath)
-        finally:
-            os.remove(tmp_path)
-
-    return await loop.run_in_executor(None, upload)
-
-
 async def supabase_remove_async(filepath: str):
     loop = asyncio.get_running_loop()
 
@@ -80,23 +59,22 @@ async def upld_pfp(
 
     filename = f"{user.username}/avatar_{user.id}.png"
     logger.info("Uploading pfp")
-    try:
-        img = Image.open(file.file).convert("RGBA")
-        img = center_crop(img)
-        img = img.resize((512, 512))
+    img = Image.open(file.file).convert("RGB")
+    img = center_crop(img)
+    img = img.resize((512, 512))
 
-        with io.BytesIO() as output:
-            img.save(output, format="PNG")
-            image_bytes = output.getvalue()
-        public_url = await supabase_upload_async(filename, image_bytes)
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+    bucket.upload(
+        filename,
+        buffer.getvalue(),
+        {"content-type": "image/png"}
+    )
+    public_url = bucket.get_public_url(filename)
+    await adapter.update_by_id(User, user.id, {"avatar_url": public_url})
 
-        await adapter.update_by_id(User, user.id, {"avatar_url": public_url})
-
-        return JSONResponse({"message": "Profile picture uploaded", "url": public_url}, status_code=201)
-
-    except Exception as e:
-        logger.error(f"Error uploading profile picture: {e}")
-        return JSONResponse({"message": "Upload failed"}, status_code=500)
+    return JSONResponse({"message": "Profile picture uploaded", "url": public_url}, status_code=201)
 
 
 @router.put("/profile-picture")
