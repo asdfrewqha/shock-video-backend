@@ -1,13 +1,15 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 import requests
-from dependencies import badresponse
 
 from config import SUPABASE_API
+from dependencies import badresponse
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User
 
+
 router = APIRouter()
+
 
 @router.get("/get-profile-picture/{uuid}")
 async def profile_picture(uuid: str, request: Request):

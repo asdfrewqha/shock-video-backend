@@ -1,5 +1,4 @@
 from fastapi import APIRouter, status
-from fastapi.responses import JSONResponse
 
 from dependencies import badresponse
 from models.db_source.db_adapter import adapter
@@ -12,8 +11,7 @@ from models.tokens.token_manager import TokenManager
 router = APIRouter()
 
 
-@router.post("/token", response_model=Tokens,
-             status_code=status.HTTP_201_CREATED)
+@router.post("/token", response_model=Tokens, status_code=status.HTTP_201_CREATED)
 async def token(user: UserLogin):
 
     bd_user = await adapter.get_by_value(User, "username", user.username)

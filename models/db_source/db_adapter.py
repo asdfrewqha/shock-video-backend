@@ -1,15 +1,18 @@
-from uuid import uuid4
-from typing import Any, List
 import logging
+from typing import Any, List
+from uuid import uuid4
 
 from sqlalchemy import update
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.future import select
+
 from config import DATABASE_URL
 from models.tables.db_tables import Base
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class AsyncDatabaseAdapter:
     def __init__(self, database_url: str = DATABASE_URL) -> None:
@@ -18,11 +21,11 @@ class AsyncDatabaseAdapter:
             echo=False,
             future=True,
             connect_args={
-                "prepared_statement_name_func": lambda:  f"__asyncpg_{uuid4()}__",
+                "prepared_statement_name_func": lambda: f"__asyncpg_{uuid4()}__",
                 "statement_cache_size": 0,
                 "prepared_statement_cache_size": 0,
             },
-    )
+        )
         self.SessionLocal = async_sessionmaker(
             bind=self.engine, class_=AsyncSession, expire_on_commit=False
         )

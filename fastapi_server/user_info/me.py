@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from dependencies import check_user, badresponse
+from dependencies import badresponse, check_user
 from models.schemas.auth_schemas import UserResponse
 from models.tables.db_tables import User
 

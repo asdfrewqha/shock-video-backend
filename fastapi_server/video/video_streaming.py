@@ -1,29 +1,28 @@
-from fastapi import APIRouter, Request, Depends
-from fastapi.responses import StreamingResponse
-from dependencies import check_user, badresponse, okresp
-import requests
 import mimetypes
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import StreamingResponse
+import requests
+
 from config import SUPABASE_API
+from dependencies import badresponse, check_user
 from models.db_source.db_adapter import adapter
-from models.tables.db_tables import Video, User
+from models.tables.db_tables import User, Video
+
 
 router = APIRouter()
 
 
 @router.get("/stream-video/{uuid}")
-async def stream_by_uuid(
-    user: Annotated[User, Depends(check_user)],
-    uuid: str,
-    request: Request):
+async def stream_by_uuid(user: Annotated[User, Depends(check_user)], uuid: str, request: Request):
     media = await adapter.get_by_id(Video, uuid)
     if not media or not media.url:
         return badresponse("Media not found", 404)
 
     mime_type, _ = mimetypes.guess_type(media.url)
     if not mime_type:
-        mime_type = "application/octet-stream" 
+        mime_type = "application/octet-stream"
 
     headers = {
         "Authorization": f"Bearer {SUPABASE_API}",
@@ -36,7 +35,7 @@ async def stream_by_uuid(
 
     if r.status_code not in (200, 206):
         return badresponse("Media not accessible", r.status_code)
-    
+
     views = media.views + 1
 
     await adapter.update_by_id(Video, uuid, {"views": views})
@@ -44,7 +43,9 @@ async def stream_by_uuid(
     response_headers = {
         "Content-Length": r.headers.get("Content-Length", ""),
         "Content-Range": r.headers.get("Content-Range", ""),
-        "Accept-Ranges": r.headers.get("Accept-Ranges", "bytes" if mime_type.startswith("video/") else "none"),
+        "Accept-Ranges": r.headers.get(
+            "Accept-Ranges", "bytes" if mime_type.startswith("video/") else "none"
+        ),
     }
 
     return StreamingResponse(
