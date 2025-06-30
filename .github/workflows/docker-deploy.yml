@@ -17,23 +17,14 @@ jobs:
 
     steps:
       - name: Telegram notification (start)
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
-          REPO: ${{ github.repository }}
-          BRANCH: ${{ github.ref_name }}
-          AUTHOR: ${{ github.actor }}
         run: |
-          MESSAGE=$(cat <<EOF
-Deploy starting:
-Repo: $REPO
-Branch: $BRANCH
-Author: $AUTHOR
-EOF
-          )
-          for ID in $TELEGRAM_CHAT_IDS; do
-            curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-              -d chat_id="$ID" \
+          BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          USER_IDS="${{ secrets.TELEGRAM_USER_IDS }}"
+          MESSAGE="Deploy starting:\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nAuthor: ${{ github.actor }}"
+
+          for USER_ID in $USER_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+              -d chat_id="$USER_ID" \
               -d text="$MESSAGE"
           done
 
@@ -78,59 +69,35 @@ EOF
             set -e
             cd /root/fastapi
 
-            echo "Stopping and removing old container if exists..."
             docker container rm -f fastapi-container || true
             docker container rm -f nginx-container || true
 
-            echo "Pulling latest image..."
             docker pull asdfrewqha/shock-fastapi-backend:latest
 
-            echo "Starting containers..."
             docker compose up -d --build --remove-orphans
-
-            echo "Deployment finished successfully."
 
       - name: Telegram notification (success)
         if: success()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
-          REPO: ${{ github.repository }}
-          BRANCH: ${{ github.ref_name }}
-          AUTHOR: ${{ github.actor }}
         run: |
-          MESSAGE=$(cat <<EOF
-Deployment finished successfully:
-Repo: $REPO
-Branch: $BRANCH
-Author: $AUTHOR
-EOF
-          )
-          for ID in $TELEGRAM_CHAT_IDS; do
-            curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-              -d chat_id="$ID" \
+          BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          USER_IDS="${{ secrets.TELEGRAM_USER_IDS }}"
+          MESSAGE="Deployment finished successfully:\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nAuthor: ${{ github.actor }}"
+
+          for USER_ID in $USER_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+              -d chat_id="$USER_ID" \
               -d text="$MESSAGE"
           done
 
       - name: Telegram notification (fail)
         if: failure()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
-          REPO: ${{ github.repository }}
-          BRANCH: ${{ github.ref_name }}
-          AUTHOR: ${{ github.actor }}
         run: |
-          MESSAGE=$(cat <<EOF
-Deployment failure:
-Repo: $REPO
-Branch: $BRANCH
-Author: $AUTHOR
-Check workflow logs.
-EOF
-          )
-          for ID in $TELEGRAM_CHAT_IDS; do
-            curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-              -d chat_id="$ID" \
+          BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          USER_IDS="${{ secrets.TELEGRAM_USER_IDS }}"
+          MESSAGE="Deployment failure:\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nAuthor: ${{ github.actor }}\nCheck workflow logs."
+
+          for USER_ID in $USER_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+              -d chat_id="$USER_ID" \
               -d text="$MESSAGE"
           done
