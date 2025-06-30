@@ -196,7 +196,8 @@ async def upload_video(
                 "description": description,
             },
         )
-        return VideoModel(url=public_url, uuid=str(random_uuid))
+        streamed_url = f"https://api.vickz.ru/stream-video/{random_uuid}"
+        return VideoModel(url=streamed_url, uuid=str(random_uuid))
 
     finally:
         for path in [input_path, output_path, inputp]:

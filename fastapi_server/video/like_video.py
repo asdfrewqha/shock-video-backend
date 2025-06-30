@@ -1,12 +1,11 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 
 from dependencies import check_user
-from fastapi_server.video.delete_video import extract_uuid_from_url
 from models.db_source.db_adapter import adapter
-from models.schemas.auth_schemas import VideoModel
 from models.tables.db_tables import Like, User, Video
 
 
@@ -15,30 +14,10 @@ router = APIRouter()
 
 @router.post("/like-video")
 async def like_video(
-    video: VideoModel,
+    uuid: UUID,
     user: Annotated[User, Depends(check_user)],
     like: bool = Query(True)
 ):
-    if video.uuid:
-        video_id = video.uuid
-    elif video.url:
-        video_id = extract_uuid_from_url(video.url)
-        if not video_id:
-            return JSONResponse(
-                content={
-                    "message": "Invalid request. Video not specified",
-                    "status": "error",
-                },
-                status_code=400,
-            )
-    else:
-        return JSONResponse(
-            content={
-                "message": "Invalid request. Video not specified",
-                "status": "error",
-            },
-            status_code=400,
-        )
     if not user:
         return JSONResponse(
             content={
@@ -46,7 +25,7 @@ async def like_video(
                 "status": "error"},
             status_code=401)
 
-    video = await adapter.get_by_id(Video, video_id)
+    video = await adapter.get_by_id(Video, uuid)
     if not video:
         return JSONResponse(
             content={
@@ -55,7 +34,7 @@ async def like_video(
             status_code=404)
 
     existing_like = await adapter.get_by_values(
-        Like, {"user_id": user.id, "video_id": video_id}
+        Like, {"user_id": user.id, "video_id": uuid}
     )
 
     if existing_like:
@@ -71,7 +50,7 @@ async def like_video(
             await adapter.update(
                 Video,
                 {"likes": video.likes, "dislikes": video.dislikes},
-                video_id
+                uuid
             )
             return JSONResponse(
                 content={
@@ -81,7 +60,7 @@ async def like_video(
 
     await adapter.insert(Like,
                          {"user_id": user.id,
-                          "video_id": video_id,
+                          "video_id": uuid,
                           "like": like})
 
     if like:
@@ -90,7 +69,7 @@ async def like_video(
         video.dislikes += 1
 
     await adapter.update(Video, {"likes": video.likes,
-                                 "dislikes": video.dislikes}, video_id)
+                                 "dislikes": video.dislikes}, uuid)
 
     return JSONResponse(
         content={
