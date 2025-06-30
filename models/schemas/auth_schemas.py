@@ -37,7 +37,8 @@ class UserResponse(BaseModel):
 
 class VideoResponse(BaseModel):
     id: UUID
-    url: str
+    sup_url: str
+    serv_url: str
     author_id: UUID
     views: int
     likes: int
@@ -50,3 +51,6 @@ class VideoResponse(BaseModel):
 class VideoModel(BaseModel):
     url: Optional[str] = ""
     uuid: Optional[str] = ""
+
+class UpdateVideoContent(BaseModel):
+    description: str

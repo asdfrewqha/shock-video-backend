@@ -9,13 +9,12 @@ from typing import Annotated
 
 import cv2
 from fastapi import APIRouter, Depends, File, Form, UploadFile
-from fastapi.responses import JSONResponse
 from moviepy.editor import VideoFileClip
 from supabase import create_client
 from uuid_v7.base import uuid7
 
 from config import SUPABASE_API, SUPABASE_URL
-from dependencies import check_user
+from dependencies import check_user, badresponse, okresp
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User, Video
 from models.schemas.auth_schemas import VideoModel
@@ -115,18 +114,18 @@ def gen_blur_sync(input_path, target_resolution=(1080, 1920)):
             processed.close()
 
 
-@router.post("/upload-video/", response_model=VideoModel)
+@router.post("/upload-video/", response_model=VideoModel, status_code=201)
 async def upload_video(
     user: Annotated[User, Depends(check_user)],
     file: UploadFile = File(...),
     description: str = Form(""),
 ):
     if not user:
-        return JSONResponse({"message": "Invalid token", "status": "error"}, status_code=401)
+        return badresponse("Unauthorized", 401)
 
     ext = os.path.splitext(file.filename)[-1].lower()
     if ext not in ALLOWED_EXTENSIONS:
-        return JSONResponse({"message": "Unsupported file extension"}, status_code=400)
+        return badresponse("Unsupported file")
 
     mime_type = mimetypes.guess_type(file.filename)[0]
     if not mime_type or mime_type == "application/octet-stream":
@@ -180,10 +179,10 @@ async def upload_video(
             logger.info("Uploading image file.")
             public_url = supabase_upd(mime_type, filepath, content)
         else:
-            return JSONResponse({"message": "Unsupported file type"}, status_code=400)
+            return badresponse("Unsupported file")
 
         if not public_url:
-            return JSONResponse({"message": "Upload failed"}, status_code=500)
+            return badresponse("Upload failed", 500)
 
         logger.info(f"File uploaded successfully: {public_url}")
 
@@ -196,7 +195,8 @@ async def upload_video(
                 "description": description,
             },
         )
-        return VideoModel(url=public_url, uuid=str(random_uuid))
+        streamed_url = f"https://api.vickz.ru/stream-video/{random_uuid}"
+        return VideoModel(url=streamed_url, uuid=str(random_uuid))
 
     finally:
         for path in [input_path, output_path, inputp]:

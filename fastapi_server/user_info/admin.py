@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 
-from dependencies import check_user
+from dependencies import check_user, badresponse, okresp
 from models.schemas.auth_schemas import UserResponse
 from models.tables.db_tables import User
 
@@ -17,16 +17,7 @@ Bear = HTTPBearer(auto_error=False)
 @router.get("/admin", response_model=UserResponse)
 async def admin(user: Annotated[User, Depends(check_user)]):
     if not user:
-        return JSONResponse(
-            content={
-                "message": "Invalid token",
-                "status": "error"},
-            status_code=401)
+        return badresponse("Unauthorized", 401)
     elif user.role != "ADMIN":
-        return JSONResponse(
-            content={
-                "message": "Access denied",
-                "status": "error"},
-            status_code=403)
-
-    return {"details": "some message for admins"}
+        return badresponse("Forbidden", 403)
+    return okresp(message="Admin")

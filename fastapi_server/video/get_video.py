@@ -25,7 +25,8 @@ async def get_video(access_token: str = Security(Bear)):
     random_video = choice(videos_db)
     return VideoResponse(
         id=random_video.id,
-        url=random_video.url,
+        sup_url=random_video.url,
+        serv_url=f"https://api.vickz.ru/stream-video/{random_video.id}",
         author_id=random_video.author_id,
         views=random_video.views,
         likes=random_video.likes,

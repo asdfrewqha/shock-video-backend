@@ -65,16 +65,6 @@ class AsyncDatabaseAdapter:
             await session.refresh(record)
             return record
 
-    async def update(self, model, update_dict: dict, id: int) -> Any:
-        async with self.SessionLocal() as session:
-            result = await session.execute(select(model).where(model.id == id))
-            record = result.scalar_one_or_none()
-            if record:
-                for key, value in update_dict.items():
-                    setattr(record, key, value)
-                await session.commit()
-            return record
-
     async def update_by_id(self, model, record_id: int, updates: dict):
         async with self.SessionLocal() as session:
             stmt = update(model).where(model.id == record_id).values(**updates)

@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from dependencies import check_user
+from dependencies import check_user, badresponse
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import Like, User
 
@@ -14,9 +14,7 @@ router = APIRouter()
 @router.get("/get-likes-of-user")
 async def get_likes(user: Annotated[User, Depends(check_user)]):
     if not user:
-        return JSONResponse(
-            {"message": "Invalid token", "status": "error"}, status_code=401
-        )
+        return badresponse("Unauthorized", 401)
     liked_videos_db = await adapter.get_by_values(
         Like, {"user_id": user.id, "like": True})
     liked_videos = []
@@ -28,9 +26,7 @@ async def get_likes(user: Annotated[User, Depends(check_user)]):
 @router.get("/get-dislikes-of-user")
 async def get_dislikes(user: Annotated[User, Depends(check_user)]):
     if not user:
-        return JSONResponse(
-            {"message": "Invalid token", "status": "error"}, status_code=401
-        )
+        return badresponse("Unauthorized", 401)
     disliked_videos_db = await adapter.get_by_values(
         Like, {"user_id": user.id, "like": False}
     )

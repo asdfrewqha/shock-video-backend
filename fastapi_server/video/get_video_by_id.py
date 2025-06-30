@@ -1,4 +1,5 @@
 from uuid import UUID
+from dependencies import badresponse
 
 from fastapi import APIRouter
 
@@ -10,12 +11,15 @@ from models.tables.db_tables import Video
 router = APIRouter()
 
 
-@router.get("/get-video-by-id", response_model=VideoResponse)
+@router.get("/get-video-by-id/{uuid}", response_model=VideoResponse)
 async def get_video_by_id(uuid: UUID):
     video_db = await adapter.get_by_id(Video, uuid)
+    if not video_db:
+        return badresponse("Video not found", 404)
     video_res = VideoResponse(
         id=uuid,
-        url=video_db.url,
+        sup_url=video_db.url,
+        serv_url=f"https://api.vickz.ru/stream-video/{uuid}",
         author_id=video_db.author_id,
         views=video_db.views,
         likes=video_db.likes,
