@@ -26,6 +26,14 @@ class Tokens(BaseModel):
     refresh_token: str
 
 
+class UserRegResponse(BaseModel):
+    id: UUID
+    username: str
+    role: Role
+    access_token: str
+    refresh_token: str
+
+
 class UserResponse(BaseModel):
     id: UUID
     username: str
