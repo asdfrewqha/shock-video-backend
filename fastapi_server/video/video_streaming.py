@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get("/stream-video/{uuid}")
 async def stream_by_uuid(
-    user: Annotated[User Depends (check_user)],
+    user: Annotated[User, Depends(check_user)],
     uuid: str,
     request: Request):
     media = await adapter.get_by_id(Video, uuid)
