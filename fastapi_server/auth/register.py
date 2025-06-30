@@ -12,8 +12,8 @@ from models.tables.db_tables import User
 
 router = APIRouter()
 
-@router.post("/register", response_model=UserResponse,
-             status_code=status.HTTP_201_CREATED)
+
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user: UserCreate):
     user_check = await adapter.get_by_value(User, "username", user.username)
 
@@ -34,7 +34,5 @@ async def register(user: UserCreate):
     user_instance = new_user_db[0]
 
     return UserResponse(
-        id=user_instance.id,
-        username=user_instance.username,
-        role=user_instance.role
+        id=user_instance.id, username=user_instance.username, role=user_instance.role
     )

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 
-from dependencies import check_user, badresponse, okresp
+from dependencies import badresponse, check_user, okresp
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import Like, User, Video
 
@@ -13,9 +13,7 @@ router = APIRouter()
 
 @router.post("/like-video")
 async def like_video(
-    uuid: UUID,
-    user: Annotated[User, Depends(check_user)],
-    like: bool = Query(True)
+    uuid: UUID, user: Annotated[User, Depends(check_user)], like: bool = Query(True)
 ):
     if not user:
         return badresponse("Unauthorized", 401)
@@ -23,9 +21,7 @@ async def like_video(
     if not video:
         return badresponse("Video not found", 404)
 
-    existing_like = await adapter.get_by_values(
-        Like, {"user_id": user.id, "video_id": uuid}
-    )
+    existing_like = await adapter.get_by_values(Like, {"user_id": user.id, "video_id": uuid})
 
     if existing_like:
         prev_like = existing_like[0]
@@ -38,23 +34,17 @@ async def like_video(
 
         if prev_like.like == like:
             await adapter.update_by_id(
-                Video,
-                uuid,
-                {"likes": video.likes, "dislikes": video.dislikes}
+                Video, uuid, {"likes": video.likes, "dislikes": video.dislikes}
             )
             return okresp(message=f"{'liked' if like else 'disliked'}")
 
-    await adapter.insert(Like,
-                         {"user_id": user.id,
-                          "video_id": uuid,
-                          "like": like})
+    await adapter.insert(Like, {"user_id": user.id, "video_id": uuid, "like": like})
 
     if like:
         video.likes += 1
     else:
         video.dislikes += 1
 
-    await adapter.update_by_id(Video, uuid, {"likes": video.likes,
-                                 "dislikes": video.dislikes})
+    await adapter.update_by_id(Video, uuid, {"likes": video.likes, "dislikes": video.dislikes})
 
     return okresp(message=f"{'liked' if like else 'disliked'}")

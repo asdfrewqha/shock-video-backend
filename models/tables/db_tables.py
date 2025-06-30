@@ -28,9 +28,7 @@ class Like(Base):
     liked_at = Column(DateTime, server_default=func.now())
     like = Column(Boolean, nullable=False)
 
-    __table_args__ = (
-        UniqueConstraint("user_id", "video_id", name="like_user_video_uc"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "video_id", name="like_user_video_uc"),)
 
 
 class User(Base):

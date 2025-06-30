@@ -14,10 +14,10 @@ from supabase import create_client
 from uuid_v7.base import uuid7
 
 from config import SUPABASE_API, SUPABASE_URL
-from dependencies import check_user, badresponse, okresp
+from dependencies import badresponse, check_user
 from models.db_source.db_adapter import adapter
-from models.tables.db_tables import User, Video
 from models.schemas.auth_schemas import VideoModel
+from models.tables.db_tables import User, Video
 
 
 mimetypes.add_type("image/webp", ".webp")
@@ -33,8 +33,20 @@ supabase = create_client(SUPABASE_URL, SUPABASE_API)
 bucket = supabase.storage.from_("videos")
 
 ALLOWED_EXTENSIONS = {
-    ".mp4", ".mov", ".webm", ".avi", ".mkv", ".flv", ".wmv", ".m4v",  # видео
-    ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp",  # изображения
+    ".mp4",
+    ".mov",
+    ".webm",
+    ".avi",
+    ".mkv",
+    ".flv",
+    ".wmv",
+    ".m4v",  # видео
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".bmp",
+    ".gif",
+    ".webp",  # изображения
 }
 
 
@@ -88,10 +100,15 @@ def gen_blur_sync(input_path, target_resolution=(1080, 1920)):
             x = (background.shape[1] - output_width) // 2
             background = background[y : y + output_height, x : x + output_width]
             small = cv2.resize(background, (output_width // 4, output_height // 4))
-            blurred = cv2.resize(cv2.GaussianBlur(small, (25, 25), 0), (output_width, output_height))
+            blurred = cv2.resize(
+                cv2.GaussianBlur(small, (25, 25), 0), (output_width, output_height)
+            )
             x_offset = (output_width - resized.shape[1]) // 2
             y_offset = (output_height - resized.shape[0]) // 2
-            blurred[y_offset: y_offset + resized.shape[0], x_offset : x_offset + resized.shape[1]] = resized
+            blurred[
+                y_offset : y_offset + resized.shape[0],
+                x_offset : x_offset + resized.shape[1],
+            ] = resized
             return cv2.cvtColor(blurred, cv2.COLOR_BGR2RGB)
 
         processed = clip.fl_image(process_frame)
@@ -125,7 +142,7 @@ async def upload_video(
 
     ext = os.path.splitext(file.filename)[-1].lower()
     if ext not in ALLOWED_EXTENSIONS:
-        return badresponse("Unsupported file")
+        return badresponse("Unsupported file", 415)
 
     mime_type = mimetypes.guess_type(file.filename)[0]
     if not mime_type or mime_type == "application/octet-stream":
@@ -153,7 +170,9 @@ async def upload_video(
             input_path = tmp.name
 
         size = os.path.getsize(input_path)
-        logger.info(f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user.username}")
+        logger.info(
+            f"Uploading file: {file.filename}, Size: {size}, Mime: {mime_type}, User: {user.username}"  # noqa
+        )
 
         loop = asyncio.get_running_loop()
 
@@ -179,7 +198,7 @@ async def upload_video(
             logger.info("Uploading image file.")
             public_url = supabase_upd(mime_type, filepath, content)
         else:
-            return badresponse("Unsupported file")
+            return badresponse("Unsupported file", 415)
 
         if not public_url:
             return badresponse("Upload failed", 500)

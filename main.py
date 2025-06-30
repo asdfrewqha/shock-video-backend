@@ -1,8 +1,9 @@
-import uvicorn
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+import uvicorn
 
 from config import FASTAPI_HOST, FASTAPI_PORT
 from fastapi_server.auth import router as auth_router

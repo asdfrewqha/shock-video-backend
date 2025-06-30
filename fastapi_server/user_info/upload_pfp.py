@@ -9,7 +9,7 @@ from fastapi.responses import Response
 from supabase import create_client
 
 from config import SUPABASE_API, SUPABASE_URL
-from dependencies import check_user, badresponse, okresp
+from dependencies import badresponse, check_user, okresp
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User
 
@@ -35,8 +35,10 @@ def center_crop(image: Image.Image) -> Image.Image:
 
 async def supabase_remove_async(filepath: str):
     loop = asyncio.get_running_loop()
+
     def remove():
         return bucket.remove(paths=[filepath])
+
     return await loop.run_in_executor(None, remove)
 
 
@@ -45,6 +47,8 @@ async def upld_pfp(
     user: Annotated[User, Depends(check_user)],
     file: UploadFile = File(...),
 ):
+    if not file.content_type.startswith("image/"):
+        return badresponse("Unsupported file", 415)
     if not user:
         return badresponse("Unauthorized", 401)
 
@@ -60,11 +64,7 @@ async def upld_pfp(
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
     buffer.seek(0)
-    bucket.upload(
-        filename,
-        buffer.getvalue(),
-        {"content-type": "image/png"}
-    )
+    bucket.upload(filename, buffer.getvalue(), {"content-type": "image/png"})
     public_url = bucket.get_public_url(filename)
     await adapter.update_by_id(User, user.id, {"avatar_url": public_url})
 
@@ -76,9 +76,12 @@ async def updt_pfp(
     user: Annotated[User, Depends(check_user)],
     file: UploadFile = File(...),
 ):
+    if not file.content_type.startswith("image/"):
+        return badresponse("Unsupported file", 415)
     if not user:
         return badresponse("Unauthorized", 401)
-
+    if not user.avatar_url:
+        return badresponse("Method not allowed", 405)
     filename = f"{user.username}/avatar_{user.id}.png"
     logger.info("Uploading pfp")
     img = Image.open(file.file).convert("RGB")
@@ -88,19 +91,15 @@ async def updt_pfp(
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
     buffer.seek(0)
-    bucket.upload(
-        filename,
-        buffer.getvalue(),
-        {"content-type": "image/png"}
-    )
     try:
         await supabase_remove_async(filename)
     except Exception as e:
         return badresponse(f"Failed to remove old avatar: {e}", 500)
+    bucket.upload(filename, buffer.getvalue(), {"content-type": "image/png"})
     public_url = bucket.get_public_url(filename)
     await adapter.update_by_id(User, user.id, {"avatar_url": public_url})
 
-    return okresp("Updated")
+    return okresp(200, "Updated")
 
 
 @router.delete("/profile-picture", status_code=204)

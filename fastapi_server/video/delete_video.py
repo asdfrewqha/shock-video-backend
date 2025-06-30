@@ -9,7 +9,7 @@ from fastapi.responses import Response
 from supabase import create_client
 
 from config import SUPABASE_API, SUPABASE_URL
-from dependencies import check_user, badresponse
+from dependencies import badresponse, check_user
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User, Video
 
@@ -27,9 +27,7 @@ def get_file_suffix(url: str) -> str:
 
 
 @router.delete("/delete-video/{uuid}", status_code=204)
-async def delete_video(
-        uuid: UUID,
-        user: Annotated[User, Depends(check_user)]):
+async def delete_video(uuid: UUID, user: Annotated[User, Depends(check_user)]):
     if not user:
         return badresponse("Unauthorized", 401)
     video_result = await adapter.get_by_id(Video, uuid)
