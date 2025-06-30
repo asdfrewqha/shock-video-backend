@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import StreamingResponse
 from dependencies import check_user, badresponse, okresp
 import requests
@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get("/stream-video/{uuid}")
 async def stream_by_uuid(
-    user: Annotated[User, check_user],
+    user: Annotated[User Depends (check_user)],
     uuid: str,
     request: Request):
     media = await adapter.get_by_id(Video, uuid)
