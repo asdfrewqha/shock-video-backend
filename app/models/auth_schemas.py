@@ -73,12 +73,12 @@ class VideoResponse(BaseModel):
     author_id: UUID
     author_name: str
     author_username: str
-    is_liked_by_user: bool
-    is_disliked_by_user: bool
-    views: int
-    likes: int
-    dislikes: int
-    description: str
+    is_liked_by_user: bool = False
+    is_disliked_by_user: bool = False
+    views: int = 0
+    likes: int = 0
+    dislikes: int = 0
+    description: str = ""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
