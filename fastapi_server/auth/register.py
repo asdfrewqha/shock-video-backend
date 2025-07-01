@@ -28,7 +28,7 @@ async def register(user: UserCreate):
         "id": new_id,
         "email": user.email,
         "name": user.name,
-        "username": user.username,
+        "username": f"@{user.username}",
         "hashed_password": Hasher.get_password_hash(user.password),
         "role": user.role,
     }
