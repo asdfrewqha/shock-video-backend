@@ -62,7 +62,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 2084
-          source: docker-compose.yml,nginx.conf
+          source: /config/docker-compose.yml,/config/nginx.conf,/config/.env
           target: /root/fastapi/
 
       - name: Deploy on server via SSH
