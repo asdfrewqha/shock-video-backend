@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import Response
 from supabase import create_client
 
-from config import SUPABASE_API, SUPABASE_URL
+from config import DEFAULT_AVATAR_URL, SUPABASE_API, SUPABASE_URL
 from dependencies import badresponse, check_user, okresp
 from models.db_source.db_adapter import adapter
 from models.tables.db_tables import User
@@ -52,7 +52,7 @@ async def upld_pfp(
     if not user:
         return badresponse("Unauthorized", 401)
 
-    if user.avatar_url:
+    if user.avatar_url != DEFAULT_AVATAR_URL:
         return badresponse("Already exists", 409)
 
     filename = f"{user.username}/avatar_{user.id}.png"
@@ -80,8 +80,6 @@ async def updt_pfp(
         return badresponse("Unsupported file", 415)
     if not user:
         return badresponse("Unauthorized", 401)
-    if not user.avatar_url:
-        return badresponse("Method not allowed", 405)
     filename = f"{user.username}/avatar_{user.id}.png"
     logger.info("Uploading pfp")
     img = Image.open(file.file).convert("RGB")
@@ -114,7 +112,7 @@ async def del_pfp(user: Annotated[User, Depends(check_user)]):
 
     try:
         await supabase_remove_async(filename)
-        await adapter.update_by_id(User, user.id, {"avatar_url": None})
+        await adapter.update_by_id(User, user.id, {"avatar_url": DEFAULT_AVATAR_URL})
     except Exception as e:
         logger.error(f"Error deleting profile picture: {e}")
         return badresponse(f"Error deleting old avatar: {e}", 500)

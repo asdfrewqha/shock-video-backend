@@ -1,4 +1,5 @@
 from fastapi import APIRouter, status
+from pydantic import EmailStr
 
 from dependencies import badresponse
 from models.db_source.db_adapter import adapter
@@ -13,11 +14,19 @@ router = APIRouter()
 
 @router.post("/token", response_model=Tokens, status_code=status.HTTP_201_CREATED)
 async def token(user: UserLogin):
-
-    bd_user = await adapter.get_by_value(User, "username", user.username)
+    if "@" in user.identifier:
+        try:
+            EmailStr.validate(user.identifier)
+        except ValueError:
+            return badresponse("Invalid email")
+        bd_user = await adapter.get_by_value(User, "email", user.identifier)
+    elif not user.identifier.isascii():
+        return badresponse("Username must be in Latin letters")
+    else:
+        bd_user = await adapter.get_by_value(User, "username", user.identifier)
 
     if bd_user == []:
-        badresponse("Not found", 404)
+        badresponse("User not found", 404)
 
     bd_user = bd_user[0]
 

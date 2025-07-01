@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
+DEFAULT_AVATAR_URL = "https://uozfhywwucahpeysjtvy.supabase.co/storage/v1/object/public/pfps/0/avatar_00000000-0000-0000-0000-000000000000.png"  # noqa
+
 PGR_USER = os.getenv("PGR_USER")
 USER = os.getenv("USER", PGR_USER)
 PASSWORD = os.getenv("PASSWORD")
