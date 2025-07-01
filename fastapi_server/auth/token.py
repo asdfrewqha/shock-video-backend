@@ -23,7 +23,7 @@ async def token(user: UserLogin):
     elif not user.identifier.isascii():
         return badresponse("Username must be in Latin letters")
     else:
-        bd_user = await adapter.get_by_value(User, "username", user.identifier)
+        bd_user = await adapter.get_by_value(User, "username", f"@{user.identifier}")
 
     if bd_user == [] or bd_user is None:
         return badresponse("User not found", 404)
