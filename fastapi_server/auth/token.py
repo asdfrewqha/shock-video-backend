@@ -25,10 +25,10 @@ async def token(user: UserLogin):
     else:
         bd_user = await adapter.get_by_value(User, "username", user.identifier)
 
-    if bd_user == []:
+    if bd_user == [] or bd_user is None:
         badresponse("User not found", 404)
-
-    bd_user = bd_user[0]
+    else:
+        bd_user = bd_user[0]
 
     if not Hasher.verify_password(user.password, bd_user.hashed_password):
         return badresponse("Forbidden", 403)
