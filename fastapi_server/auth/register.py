@@ -16,14 +16,18 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserRegResponse, status_code=status.HTTP_201_CREATED)
 async def register(user: UserCreate):
-    user_check = await adapter.get_by_value(User, "username", user.username)
-
-    if user_check:
-        return badresponse("Already exists", 409)
+    email_check = await adapter.get_by_value(User, "email", user.email)
+    if email_check:
+        return badresponse("Email lready exists", 409)
+    username_check = await adapter.get_by_value(User, "username", user.username)
+    if username_check:
+        return badresponse("Username already exists", 409)
 
     new_id = uuid5(UUID(UUID_SHA), user.username)
     new_user = {
         "id": new_id,
+        "email": user.email,
+        "name": user.name,
         "username": user.username,
         "hashed_password": Hasher.get_password_hash(user.password),
         "role": user.role,
@@ -45,6 +49,8 @@ async def register(user: UserCreate):
 
     return UserRegResponse(
         id=new_user_db.id,
+        email=new_user_db.email,
+        name=new_user_db.name,
         username=new_user_db.username,
         role=new_user_db.role,
         access_token=access_token,

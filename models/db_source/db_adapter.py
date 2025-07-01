@@ -1,8 +1,8 @@
 import logging
-from typing import Any, List
+from typing import Any, List, Literal, Type, TypeVar
 from uuid import uuid4
 
-from sqlalchemy import update
+from sqlalchemy import and_, or_, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.future import select
 
@@ -12,6 +12,8 @@ from models.tables.db_tables import Base
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+T = TypeVar("T")
 
 
 class AsyncDatabaseAdapter:
@@ -52,11 +54,45 @@ class AsyncDatabaseAdapter:
             )
             return result.scalars().all()
 
-    async def get_by_values(self, model, conditions: dict) -> List[Any]:
+    async def get_by_values(
+        self,
+        model: Type[T],
+        and_conditions: dict = None,
+        or_conditions: dict = None,
+        mode: Literal["and", "or", "mixed"] = "and",
+    ) -> List[T]:
         async with self.SessionLocal() as session:
             query = select(model)
-            for key, value in conditions.items():
-                query = query.where(getattr(model, key) == value)
+
+            and_conditions = and_conditions or {}
+            or_conditions = or_conditions or {}
+
+            def validate_keys(conditions):
+                for key in conditions:
+                    if not hasattr(model, key):
+                        raise ValueError(f"Invalid field: {key}")
+
+            validate_keys(and_conditions)
+            validate_keys(or_conditions)
+
+            and_clauses = [getattr(model, k) == v for k, v in and_conditions.items()]
+            or_clauses = [getattr(model, k) == v for k, v in or_conditions.items()]
+
+            if mode == "and":
+                if and_clauses:
+                    query = query.where(and_(*and_clauses))
+            elif mode == "or":
+                if or_clauses:
+                    query = query.where(or_(*or_clauses))
+            elif mode == "mixed":
+                combined = []
+                if and_clauses:
+                    combined.append(and_(*and_clauses))
+                if or_clauses:
+                    combined.append(or_(*or_clauses))
+                if combined:
+                    query = query.where(and_(*combined))
+
             result = await session.execute(query)
             return result.scalars().all()
 

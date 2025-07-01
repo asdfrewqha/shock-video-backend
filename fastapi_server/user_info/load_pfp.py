@@ -14,7 +14,7 @@ router = APIRouter()
 @router.get("/get-profile-picture/{uuid}")
 async def profile_picture(uuid: str, request: Request):
     user = await adapter.get_by_id(User, uuid)
-    if not user or not user.avatar_url:
+    if not user:
         return badresponse("Not found", 404)
 
     headers = {
