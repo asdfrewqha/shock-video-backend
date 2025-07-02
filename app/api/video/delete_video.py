@@ -35,7 +35,7 @@ async def delete_video(uuid: UUID, user: Annotated[User, Depends(check_user)]):
     if video_result.author_id != user.id:
         return badresponse("Forbidden", 403)
 
-    filepath = f"{user.username}/{id}.{get_file_suffix(video_result.url)}"
+    filepath = f"{user.username}/{uuid}.{get_file_suffix(video_result.url)}"
     supabase.storage.from_("videos").remove([filepath])
     logger.info(filepath)
     await adapter.delete(Video, uuid)
