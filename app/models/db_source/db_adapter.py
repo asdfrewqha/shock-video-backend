@@ -54,6 +54,11 @@ class AsyncDatabaseAdapter:
             )
             return result.scalars().all()
 
+    async def get_replies(self, model: Type[T], parent_id: Any) -> List[T]:
+        async with self.SessionLocal() as session:
+            result = await session.execute(select(model).where(model.parent_id == parent_id))
+            return result.scalars().all()
+
     async def get_by_values(
         self,
         model: Type[T],

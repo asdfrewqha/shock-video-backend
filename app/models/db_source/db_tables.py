@@ -24,6 +24,18 @@ from app.models.auth_schemas import Role
 Base = declarative_base()
 
 
+class CommentLike(Base):
+    __tablename__ = "comment_likes"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
+    comment_id = Column(Uuid, ForeignKey("comments.id", ondelete="CASCADE"))
+    liked_at = Column(DateTime, server_default=func.now())
+    like = Column(Boolean, nullable=False)
+
+    __table_args__ = (UniqueConstraint("user_id", "comment_id", name="like_user_comment_uc"),)
+
+
 class Like(Base):
     __tablename__ = "likes"
 
@@ -73,9 +85,12 @@ class Comment(Base):
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    likes = Column(Integer, nullable=False, default=0)
+    dislikes = Column(Integer, nullable=False, default=0)
 
     user = relationship("User", back_populates="comments")
     video = relationship("Video", back_populates="comment_list")
+    comm_likers = relationship("CommentLike", backref="comment", cascade="all, delete")
 
     parent: Mapped["Comment"] = relationship("Comment", remote_side=[id], backref="replies")
 
@@ -90,7 +105,7 @@ class User(Base):
     hashed_password = Column(String(100), unique=False, nullable=False)
     role = Column(Enum(Role), default=Role.USER)
     avatar_url = Column(String, nullable=False, default=DEFAULT_AVATAR_URL)
-    description = Column(String, nullable=False, default="")
+    description = Column(Text, nullable=False, default="")
     followers_count = Column(Integer, nullable=False, default=0)
     subscriptions_count = Column(Integer, nullable=False, default=0)
 
@@ -104,6 +119,7 @@ class User(Base):
         backref="subscribers",
     )
     comments = relationship("Comment", back_populates="user", cascade="all, delete")
+    liked_comments = relationship("CommentLike", backref="user", cascade="all, delete")
 
 
 class Video(Base):
@@ -116,7 +132,7 @@ class Video(Base):
     likes = Column(Integer, default=0)
     dislikes = Column(Integer, default=0)
     comments = Column(Integer, default=0)
-    description = Column(String, nullable=True, default="")
+    description = Column(Text, nullable=True, default="")
 
     likers = relationship("Like", backref="video", cascade="all, delete")
     comment_list = relationship("Comment", back_populates="video", cascade="all, delete")

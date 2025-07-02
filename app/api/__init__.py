@@ -1,1 +1,1 @@
-from app.api import auth, user_info, video  # noqa
+from app.api import auth, comments, user_info, video  # noqa
