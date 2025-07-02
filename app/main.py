@@ -11,7 +11,7 @@ from app.models.db_source.db_adapter import adapter
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan():
     await adapter.initialize_tables()
     yield
 

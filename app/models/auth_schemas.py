@@ -114,7 +114,7 @@ class UpdateProfile(BaseModel):
     description: Optional[str] = None
 
     @field_validator("username", mode="before")
-    def empty_str_to_none(cls, v):
+    def empty_str_to_none(cls, v):  # noqa
         if isinstance(v, str) and v.strip() == "":
             return None
         return v
