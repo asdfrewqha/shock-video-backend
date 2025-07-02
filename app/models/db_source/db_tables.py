@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy import (
     Boolean,
     Column,
@@ -6,11 +8,13 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     Uuid,
 )
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.config import DEFAULT_AVATAR_URL
@@ -52,6 +56,28 @@ class View(Base):
     user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
     video_id = Column(Uuid, ForeignKey("videos.id", ondelete="CASCADE"))
     viewed_at = Column(DateTime, server_default=func.now())
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    video_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("videos.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("comments.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship("User", backref="comments")
+    video: Mapped["Video"] = relationship("Video", backref="comments")
+
+    parent: Mapped["Comment"] = relationship("Comment", remote_side=[id], backref="replies")
 
 
 class User(Base):
