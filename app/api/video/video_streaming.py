@@ -37,7 +37,6 @@ async def stream_by_uuid(user: Annotated[User, Depends(check_user)], uuid: str, 
         return badresponse("Media not accessible", r.status_code)
 
     views = media.views + 1
-
     await adapter.update_by_id(Video, uuid, {"views": views})
 
     response_headers = {

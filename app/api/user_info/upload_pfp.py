@@ -5,7 +5,6 @@ from typing import Annotated
 
 from PIL import Image
 from fastapi import APIRouter, Depends, File, UploadFile
-from fastapi.responses import Response
 from supabase import create_client
 
 from app.core.config import DEFAULT_AVATAR_URL, SUPABASE_API, SUPABASE_URL
@@ -117,4 +116,4 @@ async def del_pfp(user: Annotated[User, Depends(check_user)]):
         logger.error(f"Error deleting profile picture: {e}")
         return badresponse(f"Error deleting old avatar: {e}", 500)
 
-    return Response(status_code=204)
+    return okresp(204)

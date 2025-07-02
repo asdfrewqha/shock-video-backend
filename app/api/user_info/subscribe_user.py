@@ -2,7 +2,6 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import Response
 
 from app.core.dependencies import badresponse, check_user, okresp
 from app.models.db_source.db_adapter import adapter
@@ -35,7 +34,7 @@ async def subscribe(user: Annotated[User, Depends(check_user)], uuid: UUID):
         await adapter.update_by_id(
             User, user.id, {"subscriptions_count": max(user.subscriptions_count - 1, 0)}
         )
-        return Response(status_code=204)
+        return okresp(204)
     await adapter.insert(
         Subscription,
         {

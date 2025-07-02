@@ -24,7 +24,7 @@ class Like(Base):
     __tablename__ = "likes"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"))
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
     video_id = Column(Uuid, ForeignKey("videos.id", ondelete="CASCADE"))
     liked_at = Column(DateTime, server_default=func.now())
     like = Column(Boolean, nullable=False)
@@ -34,10 +34,24 @@ class Like(Base):
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
-    subscriber_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    subscribed_to_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    subscriber_id = Column(
+        Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True
+    )
+    subscribed_to_id = Column(
+        Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True
+    )
     subscriped_at = Column(DateTime, server_default=func.now())
+
+
+class View(Base):
+    __tablename__ = "views"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
+    video_id = Column(Uuid, ForeignKey("videos.id", ondelete="CASCADE"))
+    viewed_at = Column(DateTime, server_default=func.now())
 
 
 class User(Base):
@@ -55,6 +69,7 @@ class User(Base):
     subscriptions_count = Column(Integer, nullable=False, default=0)
 
     liked_videos = relationship("Like", backref="user", cascade="all, delete")
+    viewed_videos = relationship("View", backref="user", cascade="all, delete")
     subscriptions = relationship(
         "User",
         secondary="subscriptions",

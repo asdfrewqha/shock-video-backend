@@ -110,6 +110,18 @@ class AsyncDatabaseAdapter:
             await session.execute(stmt)
             await session.commit()
 
+    async def update_by_value(self, model, param: str, param_val: any, updates: dict):
+        async with self.SessionLocal() as session:
+            stmt = (
+                update(model)
+                .where(getattr(model, param) == param_val)
+                .values(**updates)
+                .execution_options(synchronize_session="fetch")
+            )
+            result = await session.execute(stmt)
+            await session.commit()
+            return result.rowcount
+
     async def delete(self, model, id: int) -> Any:
         async with self.SessionLocal() as session:
             result = await session.execute(select(model).where(model.id == id))
