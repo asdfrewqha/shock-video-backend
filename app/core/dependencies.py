@@ -41,32 +41,6 @@ async def check_user(access_token: str = Security(Bear)):
     return False
 
 
-async def check_refresh(refresh_token: str = Security(Bear)):
-    if not refresh_token or not refresh_token.credentials:
-        logger.error("No token")
-        return False
-
-    data = TokenManager.decode_token(refresh_token.credentials)
-    if not data:
-        logger.error("No token data")
-        return False
-
-    if not data.get("sub") or not data.get("type"):
-        logger.error("Invalid token data")
-        return False
-
-    if data["type"] != "refresh":
-        logger.error("Invalid token type")
-        return False
-
-    user = await adapter.get_by_id(User, data["sub"])
-    if user:
-        return user
-
-    logger.error("No user for this token")
-    return False
-
-
 def badresponse(msg, code: int = 400, status: str = "error"):
     return JSONResponse(content={"msg": msg, "status": status}, status_code=code)
 

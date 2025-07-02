@@ -73,6 +73,8 @@ class Comment(Base):
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    likes = Column(Integer, nullable=False, default=0)
+    dislikes = Column(Integer, nullable=False, default=0)
 
     user = relationship("User", back_populates="comments")
     video = relationship("Video", back_populates="comment_list")
@@ -90,7 +92,7 @@ class User(Base):
     hashed_password = Column(String(100), unique=False, nullable=False)
     role = Column(Enum(Role), default=Role.USER)
     avatar_url = Column(String, nullable=False, default=DEFAULT_AVATAR_URL)
-    description = Column(String, nullable=False, default="")
+    description = Column(Text, nullable=False, default="")
     followers_count = Column(Integer, nullable=False, default=0)
     subscriptions_count = Column(Integer, nullable=False, default=0)
 
@@ -116,7 +118,7 @@ class Video(Base):
     likes = Column(Integer, default=0)
     dislikes = Column(Integer, default=0)
     comments = Column(Integer, default=0)
-    description = Column(String, nullable=True, default="")
+    description = Column(Text, nullable=True, default="")
 
     likers = relationship("Like", backref="video", cascade="all, delete")
     comment_list = relationship("Comment", back_populates="video", cascade="all, delete")
