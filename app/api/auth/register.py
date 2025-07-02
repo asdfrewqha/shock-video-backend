@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from fastapi import APIRouter, status
 from uuid_v7.base import uuid7
 
@@ -23,7 +21,7 @@ async def register(user: UserCreate):
     if username_check:
         return badresponse("Username already exists", 409)
 
-    new_id = UUID(uuid7())
+    new_id = uuid7()
     new_user = {
         "id": new_id,
         "email": user.email,
