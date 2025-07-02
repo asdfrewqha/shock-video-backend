@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class Role(str, Enum):
@@ -110,3 +110,9 @@ class UpdateProfile(BaseModel):
         pattern=r"^[a-zA-Z0-9_]+$",
     )
     description: Optional[str] = None
+
+    @field_validator("username", mode="before")
+    def empty_str_to_none(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v

@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import Security
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPBearer
 
 from app.models.db_source.db_adapter import adapter
@@ -73,6 +73,6 @@ def badresponse(msg, code: int = 400, status: str = "error"):
 
 def okresp(code: int = 200, message: str = None):
     if not message:
-        return JSONResponse(content={"status": "success"}, status_code=code)
+        return Response(status_code=code)
     else:
         return JSONResponse(content={"message": message, "status": "success"}, status_code=code)

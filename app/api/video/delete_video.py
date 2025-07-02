@@ -5,11 +5,10 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import Response
 from supabase import create_client
 
 from app.core.config import SUPABASE_API, SUPABASE_URL
-from app.core.dependencies import badresponse, check_user
+from app.core.dependencies import badresponse, check_user, okresp
 from app.models.db_source.db_adapter import adapter
 from app.models.db_source.db_tables import User, Video
 
@@ -40,4 +39,4 @@ async def delete_video(uuid: UUID, user: Annotated[User, Depends(check_user)]):
     supabase.storage.from_("videos").remove([filepath])
     logger.info(filepath)
     await adapter.delete(Video, uuid)
-    return Response(status_code=204)
+    return okresp(204)
