@@ -24,6 +24,18 @@ from app.models.auth_schemas import Role
 Base = declarative_base()
 
 
+class CommentLike(Base):
+    __tablename__ = "comment_likes"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
+    comment_id = Column(Uuid, ForeignKey("comments.id", ondelete="CASCADE"))
+    liked_at = Column(DateTime, server_default=func.now())
+    like = Column(Boolean, nullable=False)
+
+    __table_args__ = (UniqueConstraint("user_id", "comment_id", name="like_user_comment_uc"),)
+
+
 class Like(Base):
     __tablename__ = "likes"
 
@@ -78,6 +90,7 @@ class Comment(Base):
 
     user = relationship("User", back_populates="comments")
     video = relationship("Video", back_populates="comment_list")
+    comm_likers = relationship("CommentLike", backref="comment", cascade="all, delete")
 
     parent: Mapped["Comment"] = relationship("Comment", remote_side=[id], backref="replies")
 
@@ -106,6 +119,7 @@ class User(Base):
         backref="subscribers",
     )
     comments = relationship("Comment", back_populates="user", cascade="all, delete")
+    liked_comments = relationship("CommentLike", backref="user", cascade="all, delete")
 
 
 class Video(Base):

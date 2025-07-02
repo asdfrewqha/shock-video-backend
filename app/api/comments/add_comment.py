@@ -33,4 +33,4 @@ async def add_comment(
     }
     await adapter.update_by_id(Video, video_id, {"comments": video.comments + 1})
     new_comm = await adapter.insert(Comment, new_comment)
-    return okresp(201, new_comm.id)
+    return okresp(201, str(new_comm.id))
