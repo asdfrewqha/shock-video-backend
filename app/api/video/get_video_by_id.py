@@ -48,6 +48,7 @@ async def get_video_by_id(uuid: UUID, user: Annotated[User, Depends(check_user)]
         views=video_db.views,
         likes=video_db.likes,
         dislikes=video_db.dislikes,
+        comments=video_db.comments,
         description=video_db.description,
     )
     return video_res

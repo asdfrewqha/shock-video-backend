@@ -31,6 +31,9 @@ async def profile(user: Annotated[User, Depends(check_user)]):
         role=user.role,
         liked_videos=liked_videos,
         disliked_videos=disliked_videos,
+        description=user.description,
+        followers_count=user.followers_count,
+        subscriptions_count=user.subscriptions_count,
     )
 
     return response_user

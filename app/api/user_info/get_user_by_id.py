@@ -20,6 +20,9 @@ async def get_user_by_id(uuid: UUID):
         id=uuid,
         username=user.username,
         name=user.name,
+        subscriptions_count=user.subscriptions_count,
+        followers_count=user.followers_count,
+        description=user.description,
         role=user.role,
     )
     return user_resp
