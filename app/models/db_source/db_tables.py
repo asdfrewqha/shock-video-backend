@@ -74,8 +74,8 @@ class Comment(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    user: Mapped["User"] = relationship("User", backref="comments")
-    video: Mapped["Video"] = relationship("Video", backref="comments")
+    user = relationship("User", back_populates="comments")
+    video = relationship("Video", back_populates="comment_list")
 
     parent: Mapped["Comment"] = relationship("Comment", remote_side=[id], backref="replies")
 
@@ -103,6 +103,7 @@ class User(Base):
         secondaryjoin=id == Subscription.subscribed_to_id,
         backref="subscribers",
     )
+    comments = relationship("Comment", back_populates="user", cascade="all, delete")
 
 
 class Video(Base):
@@ -118,3 +119,4 @@ class Video(Base):
     description = Column(String, nullable=True, default="")
 
     likers = relationship("Like", backref="video", cascade="all, delete")
+    comment_list = relationship("Comment", back_populates="video", cascade="all, delete")

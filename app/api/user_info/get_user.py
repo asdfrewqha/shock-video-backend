@@ -16,6 +16,7 @@ async def get_user(username: str):
     user = await adapter.get_by_value(User, "username", username)
     if not user:
         return badresponse("User not found", 404)
+    user = user[0]
     user_resp = UserResponse(
         id=user.id,
         username=user.username,
