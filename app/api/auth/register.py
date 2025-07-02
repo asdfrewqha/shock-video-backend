@@ -31,6 +31,7 @@ async def register(user: UserCreate):
         "username": f"@{user.username}",
         "hashed_password": Hasher.get_password_hash(user.password),
         "role": user.role,
+        "description": user.description,
     }
 
     await adapter.insert(User, new_user)
@@ -53,6 +54,7 @@ async def register(user: UserCreate):
         name=new_user_db.name,
         username=new_user_db.username,
         role=new_user_db.role,
+        description=new_user_db.description,
         access_token=access_token,
         refresh_token=refresh_token,
     )

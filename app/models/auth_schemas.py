@@ -26,6 +26,7 @@ class UserCreate(BaseModel):
     )
     password: str
     role: Optional[Role] = Role.USER
+    description: str = ""
 
 
 class Tokens(BaseModel):
@@ -39,6 +40,7 @@ class UserRegResponse(BaseModel):
     name: str
     username: str
     role: Role
+    description: str = ""
     access_token: str
     refresh_token: str
 
@@ -49,6 +51,9 @@ class UserResponse(BaseModel):
     id: UUID
     username: str
     name: str
+    followers_count: int = 0
+    subscriptions_count: int = 0
+    description: str = ""
     role: Role
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -62,6 +67,9 @@ class UserProfileResponse(BaseModel):
     role: Role
     liked_videos: list
     disliked_videos: list
+    description: str = ""
+    followers_count: int = 0
+    subscriptions_count: int = 0
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -78,6 +86,7 @@ class VideoResponse(BaseModel):
     views: int = 0
     likes: int = 0
     dislikes: int = 0
+    comments: int = 0
     description: str = ""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -90,3 +99,14 @@ class VideoModel(BaseModel):
 
 class UpdateVideoContent(BaseModel):
     description: str
+
+
+class UpdateProfile(BaseModel):
+    name: Optional[str] = None
+    username: Optional[str] = Field(
+        default=None,
+        min_length=3,
+        max_length=20,
+        pattern=r"^[a-zA-Z0-9_]+$",
+    )
+    description: Optional[str] = None
