@@ -58,4 +58,5 @@ async def get_video(user: Annotated[User, Depends(check_user)]):
         dislikes=random_video.dislikes,
         comments=random_video.comments,
         description=random_video.description,
+        created_at=random_video.created_at,
     )

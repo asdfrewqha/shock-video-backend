@@ -133,6 +133,7 @@ class Video(Base):
     dislikes = Column(Integer, default=0)
     comments = Column(Integer, default=0)
     description = Column(Text, nullable=True, default="")
+    created_at = Column(DateTime, nullable=False, default=func.now())
 
     likers = relationship("Like", backref="video", cascade="all, delete")
     comment_list = relationship("Comment", back_populates="video", cascade="all, delete")
