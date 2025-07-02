@@ -13,7 +13,7 @@ router = APIRouter()
 async def get_user(username: str):
     if not username.startswith("@"):
         username = f"@{username}"
-    user = adapter.get_by_value(User, "username", username)
+    user = await adapter.get_by_value(User, "username", username)
     if not user:
         return badresponse("User not found", 404)
     user_resp = UserResponse(
