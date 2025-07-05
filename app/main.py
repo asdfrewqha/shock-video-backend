@@ -18,7 +18,10 @@ async def lifespan(app: FastAPI):  # noqa
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="Shock Video FastAPI", docs_url="/docs", redoc_url="/redoc", lifespan=lifespan
+        title="Shock Video FastAPI",
+        docs_url="/docs",
+        redoc_url="/redoc",
+        lifespan=lifespan,
     )
 
     include_all_routers(app)

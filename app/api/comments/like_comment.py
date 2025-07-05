@@ -13,7 +13,9 @@ router = APIRouter()
 
 @router.post("/like-comment/{comment_id}")
 async def like_comment(
-    user: Annotated[User, Depends(check_user)], comment_id: UUID, like: bool = True
+    user: Annotated[User, Depends(check_user)],
+    comment_id: UUID,
+    like: bool = True,
 ):
     if not user:
         return badresponse("Unauthorized", 401)
@@ -21,7 +23,8 @@ async def like_comment(
     if not comment:
         return badresponse("Comment not found", 404)
     existing_like = await adapter.get_by_values(
-        CommentLike, {"user_id": user.id, "comment_id": comment_id}
+        CommentLike,
+        {"user_id": user.id, "comment_id": comment_id},
     )
 
     if existing_like:
@@ -35,7 +38,9 @@ async def like_comment(
 
         if prev_like.like == like:
             await adapter.update_by_id(
-                Comment, comment_id, {"likes": comment.likes, "dislikes": comment.dislikes}
+                Comment,
+                comment_id,
+                {"likes": comment.likes, "dislikes": comment.dislikes},
             )
             return okresp(message=f"{'liked' if like else 'disliked'}")
 
@@ -47,7 +52,9 @@ async def like_comment(
         comment.dislikes += 1
 
     await adapter.update_by_id(
-        Comment, comment_id, {"likes": comment.likes, "dislikes": comment.dislikes}
+        Comment,
+        comment_id,
+        {"likes": comment.likes, "dislikes": comment.dislikes},
     )
 
     return okresp(message=f"{'liked' if like else 'disliked'}")

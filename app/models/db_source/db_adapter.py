@@ -29,7 +29,9 @@ class AsyncDatabaseAdapter:
             },
         )
         self.SessionLocal = async_sessionmaker(
-            bind=self.engine, class_=AsyncSession, expire_on_commit=False
+            bind=self.engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
         )
 
     async def initialize_tables(self) -> None:
@@ -50,13 +52,8 @@ class AsyncDatabaseAdapter:
     async def get_by_value(self, model, parameter: str, parameter_value: Any) -> List[Any]:
         async with self.SessionLocal() as session:
             result = await session.execute(
-                select(model).where(getattr(model, parameter) == parameter_value)
+                select(model).where(getattr(model, parameter) == parameter_value),
             )
-            return result.scalars().all()
-
-    async def get_replies(self, model: Type[T], parent_id: Any) -> List[T]:
-        async with self.SessionLocal() as session:
-            result = await session.execute(select(model).where(model.parent_id == parent_id))
             return result.scalars().all()
 
     async def get_by_values(
@@ -139,7 +136,7 @@ class AsyncDatabaseAdapter:
     async def delete_by_value(self, model, parameter: str, parameter_value: Any) -> List[Any]:
         async with self.SessionLocal() as session:
             result = await session.execute(
-                select(model).where(getattr(model, parameter) == parameter_value)
+                select(model).where(getattr(model, parameter) == parameter_value),
             )
             records = result.scalars().all()
             for record in records:
@@ -152,6 +149,14 @@ class AsyncDatabaseAdapter:
             result = await session.execute(request)
             await session.commit()
             return result.fetchall()
+
+    async def get_comment_replies(self, comment_id: Any):
+        from app.models.db_source.db_tables import Comment
+
+        async with self.SessionLocal() as session:
+            stmt = select(Comment).where(Comment.parent_id == comment_id)
+            result = await session.execute(stmt)
+            return result.scalars().all()
 
 
 adapter = AsyncDatabaseAdapter()

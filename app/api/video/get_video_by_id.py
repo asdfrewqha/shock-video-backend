@@ -21,15 +21,13 @@ async def get_video_by_id(uuid: UUID, user: Annotated[User, Depends(check_user)]
     if user:
         user_id = user.id
         exsisting_like = await adapter.get_by_values(
-            Like, {"user_id": user_id, "video_id": video_db.id}
+            Like,
+            {"user_id": user_id, "video_id": video_db.id},
         )
         if exsisting_like:
-            if exsisting_like[0].like:
-                liked = True
-                disliked = False
-            else:
-                liked = False
-                disliked = True
+            like = exsisting_like[0].like
+            liked = True if like is True else False
+            disliked = True if like is False else False
         else:
             liked = False
             disliked = False

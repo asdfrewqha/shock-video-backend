@@ -25,10 +25,18 @@ async def add_comment(
     video = await adapter.get_by_id(Video, video_id)
     if not video:
         return badresponse("Video not found", 404)
+    parent_comment = await adapter.get_by_id(Comment, parent_id)
+    if parent_comment:
+        parent_username = parent_comment.user_username
+    else:
+        parent_username = None
     new_comment = {
         "user_id": user.id,
+        "user_name": user.name,
+        "user_username": user.username,
         "video_id": video_id,
         "parent_id": parent_id,
+        "parent_username": parent_username,
         "content": content,
     }
     await adapter.update_by_id(Video, video_id, {"comments": video.comments + 1})
