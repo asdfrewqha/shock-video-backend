@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import Optional
 from uuid import UUID
@@ -88,6 +89,7 @@ class VideoResponse(BaseModel):
     dislikes: int = 0
     comments: int = 0
     description: str = ""
+    created_at: datetime
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -112,7 +114,7 @@ class UpdateProfile(BaseModel):
     description: Optional[str] = None
 
     @field_validator("username", mode="before")
-    def empty_str_to_none(cls, v):
+    def empty_str_to_none(cls, v):  # noqa
         if isinstance(v, str) and v.strip() == "":
             return None
         return v

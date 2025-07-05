@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 import requests
 
@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.get("/get-profile-picture/{uuid}")
-async def profile_picture(uuid: str, request: Request):
+async def profile_picture(uuid: str):
     user = await adapter.get_by_id(User, uuid)
     if not user:
         return badresponse("Not found", 404)

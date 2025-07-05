@@ -11,14 +11,17 @@ from app.models.db_source.db_adapter import adapter
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI):  # noqa
     await adapter.initialize_tables()
     yield
 
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="Shock Video FastAPI", docs_url="/docs", redoc_url="/redoc", lifespan=lifespan
+        title="Shock Video FastAPI",
+        docs_url="/docs",
+        redoc_url="/redoc",
+        lifespan=lifespan,
     )
 
     include_all_routers(app)
