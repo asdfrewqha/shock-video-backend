@@ -45,8 +45,9 @@ async def get_comments(video_id: UUID, user: Annotated[User, Depends(check_user)
                 "created_at": c.created_at,
                 "likes": c.likes,
                 "dislikes": c.dislikes,
+                "replies_count": c.replies_count,
                 "is_liked_by_user": liked,
                 "is_disliked_by_user": disliked,
-            }
+            },
         )
     return result

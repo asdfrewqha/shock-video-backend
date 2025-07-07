@@ -86,6 +86,7 @@ class Comment(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     likes: Mapped[int] = mapped_column(default=0, nullable=False)
     dislikes: Mapped[int] = mapped_column(default=0, nullable=False)
+    replies_count: Mapped[int] = mapped_column(default=0, nullable=False)
 
     user = relationship("User", back_populates="comments")
     video = relationship("Video", back_populates="comment_list")

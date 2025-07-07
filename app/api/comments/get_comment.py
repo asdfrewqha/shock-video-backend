@@ -24,6 +24,9 @@ async def get_comment(comment_id: UUID, user: Annotated[User, Depends(check_user
         else:
             liked = False
             disliked = False
+    else:
+        liked = False
+        disliked = False
     return {
         "id": comment.id,
         "user_id": comment.user_id,
@@ -34,6 +37,7 @@ async def get_comment(comment_id: UUID, user: Annotated[User, Depends(check_user
         "created_at": comment.created_at,
         "likes": comment.likes,
         "dislikes": comment.dislikes,
+        "replies_count": comment.replies_count,
         "is_liked_by_user": liked,
         "is_disliked_by_user": disliked,
     }
