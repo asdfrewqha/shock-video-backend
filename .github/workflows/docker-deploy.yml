@@ -12,14 +12,11 @@ jobs:
 
     steps:
       - name: Telegram notification (start)
+        env:
+          BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          USER_IDS: "${{ secrets.TELEGRAM_CHAT_ID }}"
         run: |
-          BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}"
-          USER_IDS="${{ secrets.TELEGRAM_CHAT_ID }}"
-          MESSAGE="Deploy starting:
-          Repo: ${{ github.repository }}
-          Branch: ${{ github.ref_name }}
-          Author: ${{ github.actor }}"
-
+          MESSAGE="Deploy starting:%0ARepo: $GITHUB_REPOSITORY%0ABranch: $GITHUB_REF_NAME%0AAuthor: $GITHUB_ACTOR"
           for USER_ID in $USER_IDS; do
             curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
               -d chat_id="$USER_ID" \
@@ -53,8 +50,8 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 2084
-          source: config/
-          target: /root/fastapi/
+          source: config/docker-compose.yml,config/nginx.conf
+          target: /root/fastapi
 
       - name: Deploy on server via SSH
         uses: appleboy/ssh-action@v0.1.0
@@ -76,14 +73,11 @@ jobs:
 
       - name: Telegram notification (success)
         if: success()
+        env:
+          BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          USER_IDS: "${{ secrets.TELEGRAM_CHAT_ID }}"
         run: |
-          BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}"
-          USER_IDS="${{ secrets.TELEGRAM_CHAT_ID }}"
-          MESSAGE="Deployment finished successfully:
-          Repo: ${{ github.repository }}
-          Branch: ${{ github.ref_name }}
-          Author: ${{ github.actor }}"
-
+          MESSAGE="Deployment finished successfully:%0ARepo: $GITHUB_REPOSITORY%0ABranch: $GITHUB_REF_NAME%0AAuthor: $GITHUB_ACTOR"
           for USER_ID in $USER_IDS; do
             curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
               -d chat_id="$USER_ID" \
@@ -92,17 +86,13 @@ jobs:
 
       - name: Telegram notification (fail)
         if: failure()
+        env:
+          BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          USER_IDS: "${{ secrets.TELEGRAM_CHAT_ID }}"
         run: |
-          BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}"
-          USER_IDS="${{ secrets.TELEGRAM_CHAT_ID }}"
-          MESSAGE="Deployment failure:
-          Repo: ${{ github.repository }}
-          Branch: ${{ github.ref_name }}
-          Author: ${{ github.actor }}
-          Check workflow logs."
-
-                    for USER_ID in $USER_IDS; do
-                      curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-                        -d chat_id="$USER_ID" \
-                        -d text="$MESSAGE"
-                    done
+          MESSAGE="Deployment failure:%0ARepo: $GITHUB_REPOSITORY%0ABranch: $GITHUB_REF_NAME%0AAuthor: $GITHUB_ACTOR%0ACheck workflow logs."
+          for USER_ID in $USER_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+              -d chat_id="$USER_ID" \
+              -d text="$MESSAGE"
+          done
