@@ -49,6 +49,7 @@ async def get_comment_replies(
             "created_at": reply.created_at,
             "likes": reply.likes,
             "dislikes": reply.dislikes,
+            "replies_count": reply.replies_count,
             "is_liked_by_user": user_likes.get(reply.id) is True,
             "is_disliked_by_user": user_likes.get(reply.id) is False,
         }
