@@ -13,7 +13,9 @@ router = APIRouter()
 
 @router.put("/edit-comment/{comment_id}")
 async def edit_comment(
-    user: Annotated[User, Depends(check_user)], comment_id: UUID, content: str = Body(...)
+    user: Annotated[User, Depends(check_user)],
+    comment_id: UUID,
+    content: str = Body(...),
 ):
     if not user:
         return badresponse("Unauthorized", 401)

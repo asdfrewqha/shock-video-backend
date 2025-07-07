@@ -14,7 +14,9 @@ router = APIRouter()
 
 @router.put("/update-video/{uuid}")
 async def update_video(
-    user: Annotated[User, Depends(check_user)], uuid: UUID, content: UpdateVideoContent
+    user: Annotated[User, Depends(check_user)],
+    uuid: UUID,
+    content: UpdateVideoContent,
 ):
     if not user:
         return badresponse("Unauthorized", 401)

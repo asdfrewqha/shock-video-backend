@@ -21,7 +21,9 @@ class TokenManager:
             expire = datetime.utcnow() + timedelta(minutes=TokenManager.ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(
-            to_encode, TokenManager.SECRET_KEY, algorithm=TokenManager.ALGORITHM
+            to_encode,
+            TokenManager.SECRET_KEY,
+            algorithm=TokenManager.ALGORITHM,
         )
         return encoded_jwt
 
@@ -29,7 +31,9 @@ class TokenManager:
     def decode_token(token: str) -> Dict[str, Any]:
         try:
             payload = jwt.decode(
-                token, TokenManager.SECRET_KEY, algorithms=[TokenManager.ALGORITHM]
+                token,
+                TokenManager.SECRET_KEY,
+                algorithms=[TokenManager.ALGORITHM],
             )
 
             if datetime.utcfromtimestamp(payload.get("exp")) < datetime.utcnow():

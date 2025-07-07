@@ -47,6 +47,26 @@ services:
       - fastapi
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis-container
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/var/lib/redis/data
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --bind 0.0.0.0
+    restart: unless-stopped
+
+  celery:
+    build: .
+    container_name: celery-container
+    command: celery -A app.core.celery_config:celery_app worker --loglevel=info -P solo
+    depends_on:
+      - redis
 
 volumes:
   postgres_data:
+  redis_data:

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmation Code</title>
+</head>
+<body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color:#f4f4f4;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden;">
+          <tr>
+            <td style="background-color:#3b82f6; padding:20px; text-align:center; color:#ffffff; font-size:24px; font-weight:bold;">
+              VICKZ
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px 40px; text-align:center;">
+              <h2 style="color:#333333;">Your Confirmation Code</h2>
+              <p style="font-size:16px; color:#555555;">Please use this code to verify your account:</p>
+              <div style="margin: 30px 0;">
+                <span style="display:inline-block; padding:15px 30px; font-size:24px; background-color:#F3F4F6; border-radius:8px; font-weight:bold; letter-spacing:2px; color:#111827;">
+                    <a href="{{ confirmation_url }}"
+                        {{ token }}
+                    </a>
+                </span>
+              </div>
+              <p style="font-size:14px; color:#888888;">This code is valid for 10 minutes.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#F9FAFB; padding:20px; text-align:center; font-size:12px; color:#AAAAAA;">
+              If you did not request this code, please ignore this email.<br>
+              © 2025 vickz.ru. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

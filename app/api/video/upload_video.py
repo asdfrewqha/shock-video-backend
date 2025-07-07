@@ -101,7 +101,8 @@ def gen_blur_sync(input_path, target_resolution=(1080, 1920)):
             background = background[y : y + output_height, x : x + output_width]
             small = cv2.resize(background, (output_width // 4, output_height // 4))
             blurred = cv2.resize(
-                cv2.GaussianBlur(small, (25, 25), 0), (output_width, output_height)
+                cv2.GaussianBlur(small, (25, 25), 0),
+                (output_width, output_height),
             )
             x_offset = (output_width - resized.shape[1]) // 2
             y_offset = (output_height - resized.shape[0]) // 2

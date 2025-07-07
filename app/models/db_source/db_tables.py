@@ -18,10 +18,12 @@ class CommentLike(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE")
+        Uuid,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
     )
     comment_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("comments.id", ondelete="CASCADE")
+        Uuid,
+        ForeignKey("comments.id", ondelete="CASCADE"),
     )
     liked_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     like: Mapped[bool] = mapped_column(Boolean, nullable=False)
@@ -34,7 +36,8 @@ class Like(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE")
+        Uuid,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
     )
     video_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("videos.id", ondelete="CASCADE"))
     liked_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
@@ -47,10 +50,14 @@ class Subscription(Base):
     __tablename__ = "subscriptions"
 
     subscriber_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True
+        Uuid,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
     )
     subscribed_to_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True
+        Uuid,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        primary_key=True,
     )
     subscribed_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
@@ -60,7 +67,8 @@ class View(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE")
+        Uuid,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
     )
     video_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("videos.id", ondelete="CASCADE"))
     viewed_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
@@ -71,15 +79,24 @@ class Comment(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     video_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("videos.id", ondelete="CASCADE"), nullable=False, index=True
+        Uuid,
+        ForeignKey("videos.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+        Uuid,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     user_name: Mapped[str] = mapped_column(String, nullable=False)
     user_username: Mapped[str] = mapped_column(String, nullable=False)
     parent_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        Uuid, ForeignKey("comments.id", ondelete="CASCADE"), nullable=True, index=True
+        Uuid,
+        ForeignKey("comments.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
     )
     parent_username: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
@@ -93,7 +110,9 @@ class Comment(Base):
     comm_likers = relationship("CommentLike", backref="comment", cascade="all, delete")
 
     parent: Mapped[Optional["Comment"]] = relationship(
-        "Comment", remote_side=[id], backref="replies"
+        "Comment",
+        remote_side=[id],
+        backref="replies",
     )
 
 
@@ -105,6 +124,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     username: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_activated: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     role: Mapped[Role] = mapped_column(Enum(Role), default=Role.USER)
     avatar_url: Mapped[str] = mapped_column(String, nullable=False, default=DEFAULT_AVATAR_URL)
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
@@ -130,7 +150,9 @@ class Video(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     author_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        Uuid,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
     )
     url: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     views: Mapped[int] = mapped_column(default=0)

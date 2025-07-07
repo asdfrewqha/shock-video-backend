@@ -29,10 +29,14 @@ async def subscribe(user: Annotated[User, Depends(check_user)], uuid: UUID):
         ex_subscription = ex_subscription[0]
         await adapter.delete(Subscription, ex_subscription.id)
         await adapter.update_by_id(
-            User, uuid, {"followers_count": max(user_db.followers_count - 1, 0)}
+            User,
+            uuid,
+            {"followers_count": max(user_db.followers_count - 1, 0)},
         )
         await adapter.update_by_id(
-            User, user.id, {"subscriptions_count": max(user.subscriptions_count - 1, 0)}
+            User,
+            user.id,
+            {"subscriptions_count": max(user.subscriptions_count - 1, 0)},
         )
         return okresp(204)
     await adapter.insert(

@@ -30,6 +30,10 @@ class UserCreate(BaseModel):
     description: str = ""
 
 
+class EditPwdRequest(BaseModel):
+    password: str
+
+
 class Tokens(BaseModel):
     access_token: str
     refresh_token: str
@@ -43,7 +47,6 @@ class UserRegResponse(BaseModel):
     role: Role
     description: str = ""
     access_token: str
-    refresh_token: str
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

@@ -13,7 +13,9 @@ router = APIRouter()
 
 @router.post("/like-video")
 async def like_video(
-    uuid: UUID, user: Annotated[User, Depends(check_user)], like: bool = Query(True)
+    uuid: UUID,
+    user: Annotated[User, Depends(check_user)],
+    like: bool = Query(True),
 ):
     if not user:
         return badresponse("Unauthorized", 401)
@@ -34,7 +36,9 @@ async def like_video(
 
         if prev_like.like == like:
             await adapter.update_by_id(
-                Video, uuid, {"likes": video.likes, "dislikes": video.dislikes}
+                Video,
+                uuid,
+                {"likes": video.likes, "dislikes": video.dislikes},
             )
             return okresp(message=f"{'liked' if like else 'disliked'}")
 

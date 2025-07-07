@@ -22,7 +22,19 @@ FASTAPI_PORT = os.getenv("FASTAPI_PORT")
 RANDOM_SECRET = os.getenv("RANDOM_SECRET")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_API = os.getenv("SUPABASE_API")
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_USERNAME = os.getenv("EMAIL_USERNAME")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+REDIS_DB = os.getenv("REDIS_DB")
+BACKEND_URL = os.getenv("BACKEND_URL")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 DATABASE_URL = f"postgresql+asyncpg://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
+REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
-logging.info(DATABASE_URL)
+logger.info(DATABASE_URL)
+logger.info(REDIS_URL)
