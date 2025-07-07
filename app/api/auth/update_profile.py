@@ -30,7 +30,8 @@ async def move_folder_video(old_path: str, new_path: str):
     bucket = "videos"
     try:
         files = await supabase.storage.from_(bucket).list(
-            path=f"{old_path}/", options={"recursive": True}
+            path=f"{old_path}/",
+            options={"recursive": True},
         )
     except Exception as e:
         logger.error(f"Ошибка получения списка файлов: {e}")

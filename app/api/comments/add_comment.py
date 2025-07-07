@@ -29,7 +29,9 @@ async def add_comment(
     if parent_comment:
         parent_username = parent_comment.user_username
         await adapter.update_by_id(
-            Comment, parent_id, {"replies_count": parent_comment.replies_count + 1}
+            Comment,
+            parent_id,
+            {"replies_count": parent_comment.replies_count + 1},
         )
     else:
         parent_username = None

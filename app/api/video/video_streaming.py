@@ -45,7 +45,8 @@ async def stream_by_uuid(user: Annotated[User, Depends(check_user)], uuid: UUID,
         "Content-Length": r.headers.get("Content-Length", ""),
         "Content-Range": r.headers.get("Content-Range", ""),
         "Accept-Ranges": r.headers.get(
-            "Accept-Ranges", "bytes" if mime_type.startswith("video/") else "none"
+            "Accept-Ranges",
+            "bytes" if mime_type.startswith("video/") else "none",
         ),
     }
 
