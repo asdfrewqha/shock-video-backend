@@ -63,11 +63,16 @@ services:
         condition: service_healthy
 
   flower:
-    image: mher/flower
+    build:
+      context: .
+      dockerfile: Dockerfile-flower
     container_name: flower
     command: >
-      flower
+      /usr/local/bin/flower
       --broker=redis://:${REDIS_PASSWORD}@${REDIS_HOST}:6379/0
+      --port=5555
+    env_file:
+      - /root/fastapi/.env
     ports:
       - "5555:5555"
     depends_on:
