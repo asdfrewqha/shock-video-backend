@@ -21,7 +21,23 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
+  redis:
+    image: redis:7-alpine
+    container_name: redis-container
+    volumes:
+      - redis_data:/var/lib/redis/data
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --bind 0.0.0.0
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   fastapi:
     image: asdfrewqha/shock-fastapi-backend:latest
     container_name: fastapi-container
@@ -31,8 +47,32 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     expose:
       - 8000
+
+  celery:
+    image: asdfrewqha/shock-fastapi-backend:latest
+    container_name: celery-container
+    env_file:
+      - /root/fastapi/.env
+    command: celery -A app.core.celery_config:celery_app worker --loglevel=info -P solo
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  flower:
+    image: mher/flower
+    container_name: flower
+    command: >
+      flower
+      --broker=redis://:${REDIS_PASSWORD}@${REDIS_HOST}:6379/0
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
@@ -46,26 +86,6 @@ services:
     depends_on:
       - fastapi
     restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: redis-container
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/var/lib/redis/data
-    command: >
-      redis-server
-      --requirepass ${REDIS_PASSWORD}
-      --bind 0.0.0.0
-    restart: unless-stopped
-
-  celery:
-    build: .
-    container_name: celery-container
-    command: celery -A app.core.celery_config:celery_app worker --loglevel=info -P solo
-    depends_on:
-      - redis
 
 volumes:
   postgres_data:
