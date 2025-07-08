@@ -21,6 +21,7 @@ async def change_pwd(email: str):
     user = await adapter.get_by_value(User, "email", email)
     if not user:
         return badresponse("User not found", 404)
+    user = user[0]
     email_domain = email.split("@")[1]
     try:
         records = dns.resolver.resolve(email_domain, "MX")
