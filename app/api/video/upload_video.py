@@ -132,7 +132,7 @@ def gen_blur_sync(input_path, target_resolution=(1080, 1920)):
             processed.close()
 
 
-@router.post("/upload-video/", response_model=VideoModel, status_code=201)
+@router.post("/upload-video", response_model=VideoModel, status_code=201)
 async def upload_video(
     user: Annotated[User, Depends(check_user)],
     file: UploadFile = File(...),
