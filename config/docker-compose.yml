@@ -61,24 +61,6 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-
-  flower:
-    build:
-      context: .
-      dockerfile: Dockerfile-flower
-    container_name: flower
-    command: >
-      /usr/local/bin/flower
-      --broker=redis://:${REDIS_PASSWORD}@${REDIS_HOST}:6379/0
-      --port=5555
-    env_file:
-      - /root/fastapi/.env
-    ports:
-      - "5555:5555"
-    depends_on:
-      - redis
-    restart: unless-stopped
-
   nginx:
     image: nginx:alpine
     container_name: nginx-container
