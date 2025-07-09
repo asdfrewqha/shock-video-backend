@@ -65,7 +65,7 @@ services:
     image: rclone/rclone:latest
     container_name: rclone
     expose:
-      - "5527"
+      - "5572"
     env_file:
       - .env
     environment:
