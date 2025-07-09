@@ -64,8 +64,6 @@ services:
   rclone:
     image: rclone/rclone:latest
     container_name: rclone
-    ports:
-      - "127.0.0.1:5572:5572"
     env_file:
       - .env
     volumes:
@@ -79,6 +77,8 @@ services:
       --rc-web-gui
       --config=/config/rclone/rclone.conf
     restart: unless-stopped
+    networks:
+      - rclone_net
   nginx:
     image: nginx:alpine
     container_name: nginx-container
@@ -91,6 +91,12 @@ services:
     depends_on:
       - fastapi
     restart: unless-stopped
+    networks:
+      - rclone_net
+
+networks:
+  rclone_net:
+    driver: bridge
 
 volumes:
   postgres_data:
