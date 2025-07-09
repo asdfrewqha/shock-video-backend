@@ -43,15 +43,31 @@ jobs:
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/shock-fastapi-backend:latest
           cache-to: type=inline
 
-      - name: Copy docker-compose.yml and nginx.conf to server
+      - name: Archive docker-compose.yml and nginx.conf
+        run: |
+          tar -czf deploy.tar.gz -C config docker-compose.yml nginx.conf
+
+      - name: Copy archive to server
         uses: appleboy/scp-action@v0.1.0
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 2084
-          source: config/docker-compose.yml,config/nginx.conf
-          target: /root/fastapi
+          source: deploy.tar.gz
+          target: /root/fastapi/
+
+      - name: Extract and clean up on server
+        uses: appleboy/ssh-action@v0.1.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 2084
+          script: |
+            cd /root/fastapi
+            tar -xzf deploy.tar.gz
+            rm deploy.tar.gz
 
       - name: Deploy on server via SSH
         uses: appleboy/ssh-action@v0.1.0
