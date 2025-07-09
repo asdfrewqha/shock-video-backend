@@ -63,24 +63,6 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-  rclone:
-    image: rclone/rclone:latest
-    container_name: rclone
-    env_file:
-      - .env
-    volumes:
-      - ./rclone:/config/rclone
-      - ./data:/data
-    command: >
-      rcd
-      --rc-addr=:5572
-      --rc-user=${RCLONE_USER}
-      --rc-pass=${RCLONE_PASS}
-      --rc-web-gui
-      --config=/config/rclone/rclone.conf
-    restart: unless-stopped
-    networks:
-      - nginx_net
   nginx:
     image: nginx:alpine
     container_name: nginx-container
