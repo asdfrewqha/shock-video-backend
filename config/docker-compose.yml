@@ -61,6 +61,27 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+  rclone:
+    image: rclone/rclone:latest
+    container_name: rclone
+    expose:
+      - "5527"
+    env_file:
+      - .env
+    environment:
+      - RCLONE_ACCESS_KEY=${RCLONE_ACCESS_KEY}
+      - RCLONE_SECRET_KEY=${RCLONE_SECRET_KEY}
+    volumes:
+      - ./rclone:/config/rclone
+      - ./data:/data
+    command: >
+      rcd
+      --rc-addr=:5572
+      --rc-user=${RCLONE_USER}
+      --rc-pass=${RCLONE_PASS}
+      --rc-web-gui
+      --config=/config/rclone/rclone.conf
+    restart: unless-stopped
   nginx:
     image: nginx:alpine
     container_name: nginx-container
@@ -69,7 +90,7 @@ services:
       - "443:443"
     volumes:
       - /root/fastapi/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - /root/certs/api.vickz.ru:/etc/letsencrypt/live/api.vickz.ru:ro
+      - /root/certs:/etc/letsencrypt/live:ro
     depends_on:
       - fastapi
     restart: unless-stopped
