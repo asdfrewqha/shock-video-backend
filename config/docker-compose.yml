@@ -51,6 +51,8 @@ services:
         condition: service_healthy
     expose:
       - 8000
+    networks:
+      - nginx_net
 
   celery:
     image: asdfrewqha/shock-fastapi-backend:latest
@@ -78,7 +80,7 @@ services:
       --config=/config/rclone/rclone.conf
     restart: unless-stopped
     networks:
-      - rclone_net
+      - nginx_net
   nginx:
     image: nginx:alpine
     container_name: nginx-container
@@ -92,10 +94,10 @@ services:
       - fastapi
     restart: unless-stopped
     networks:
-      - rclone_net
+      - nginx_net
 
 networks:
-  rclone_net:
+  nginx_net:
     driver: bridge
 
 volumes:
