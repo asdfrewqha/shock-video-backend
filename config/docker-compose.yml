@@ -64,13 +64,10 @@ services:
   rclone:
     image: rclone/rclone:latest
     container_name: rclone
-    expose:
-      - "5572"
+    ports:
+      - "127.0.0.1:5572:5572"
     env_file:
       - .env
-    environment:
-      - RCLONE_ACCESS_KEY=${RCLONE_ACCESS_KEY}
-      - RCLONE_SECRET_KEY=${RCLONE_SECRET_KEY}
     volumes:
       - ./rclone:/config/rclone
       - ./data:/data
